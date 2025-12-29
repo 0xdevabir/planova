@@ -7,120 +7,136 @@ interface DestinationCardProps {
 }
 
 export default function DestinationCard({ destination }: DestinationCardProps) {
-  const budgetUtilization =
-    (destination.totalEstimatedCost / 
-      (destination.costBreakdown.flights + 
-       destination.costBreakdown.accommodation + 
-       destination.costBreakdown.food + 
-       destination.costBreakdown.activities)) * 100;
-
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition duration-300">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-4 text-white">
-        <div className="flex justify-between items-start">
+    <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 border border-gray-100 group">
+      {/* Header with gradient */}
+      <div className="bg-linear-to-br from-cyan-500 via-blue-500 to-indigo-600 p-5 text-white relative overflow-hidden">
+        {/* Decorative circles */}
+        <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full" />
+        <div className="absolute -right-2 top-8 w-12 h-12 bg-white/10 rounded-full" />
+        
+        <div className="relative flex justify-between items-start">
           <div>
             <h3 className="text-2xl font-bold">{destination.name}</h3>
-            <p className="text-blue-100">{destination.address}</p>
+            <p className="text-cyan-100 text-sm mt-1">{destination.address}</p>
           </div>
           <div className="text-right">
-            <div className="text-sm text-blue-100">Value Score</div>
+            <div className="text-xs text-cyan-100 uppercase tracking-wider">Value Score</div>
             <div className="text-3xl font-bold">{Math.round(destination.valueScore)}</div>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-6 space-y-4">
+      <div className="p-5 space-y-4">
         {/* Description */}
         {destination.description && (
-          <p className="text-gray-600">{destination.description}</p>
+          <p className="text-gray-600 text-sm leading-relaxed">{destination.description}</p>
         )}
 
         {/* Rating */}
         {destination.rating && (
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 text-lg">★</span>
-            <span className="font-semibold">{destination.rating}/5</span>
-            <span className="text-gray-500 text-sm">
+            <div className="flex">
+              {[...Array(5)].map((_, i) => (
+                <svg
+                  key={i}
+                  className={`w-4 h-4 ${i < Math.round(destination.rating!) ? "text-amber-400" : "text-gray-200"}`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              ))}
+            </div>
+            <span className="font-medium text-gray-900">{destination.rating}</span>
+            <span className="text-gray-400 text-sm">
               ({destination.reviews?.toLocaleString()} reviews)
             </span>
           </div>
         )}
 
         {/* Cost Breakdown */}
-        <div className="bg-gray-50 rounded p-4">
-          <h4 className="font-semibold text-gray-900 mb-3">Cost Breakdown</h4>
+        <div className="bg-linear-to-br from-slate-50 to-gray-50 rounded-xl p-4 border border-gray-100">
+          <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wider">Cost Breakdown</h4>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Flights</span>
-              <span className="font-medium">${destination.costBreakdown.flights.toFixed(0)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full" />
+                Flights
+              </span>
+              <span className="font-medium text-gray-900">${destination.costBreakdown.flights.toFixed(0)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Accommodation</span>
-              <span className="font-medium">${destination.costBreakdown.accommodation.toFixed(0)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 flex items-center gap-2">
+                <span className="w-2 h-2 bg-blue-400 rounded-full" />
+                Accommodation
+              </span>
+              <span className="font-medium text-gray-900">${destination.costBreakdown.accommodation.toFixed(0)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Food</span>
-              <span className="font-medium">${destination.costBreakdown.food.toFixed(0)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-400 rounded-full" />
+                Food
+              </span>
+              <span className="font-medium text-gray-900">${destination.costBreakdown.food.toFixed(0)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Activities</span>
-              <span className="font-medium">${destination.costBreakdown.activities.toFixed(0)}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500 flex items-center gap-2">
+                <span className="w-2 h-2 bg-violet-400 rounded-full" />
+                Activities
+              </span>
+              <span className="font-medium text-gray-900">${destination.costBreakdown.activities.toFixed(0)}</span>
             </div>
-            <div className="border-t pt-2 mt-2 flex justify-between font-bold">
-              <span>Total</span>
-              <span className="text-lg text-blue-600">
+            <div className="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center">
+              <span className="font-bold text-gray-900">Total</span>
+              <span className="text-xl font-bold bg-linear-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                 ${destination.totalEstimatedCost.toFixed(0)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Availability */}
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div className="bg-blue-50 p-3 rounded">
-            <div className="font-semibold text-gray-700">Flights</div>
-            <div className={
-              destination.flightAvailability === "Available"
-                ? "text-green-600"
-                : "text-orange-600"
-            }>
-              {destination.flightAvailability}
-            </div>
+        {/* Availability Badges */}
+        <div className="flex gap-2">
+          <div className={`flex-1 px-3 py-2 rounded-lg text-center text-sm font-medium ${
+            destination.flightAvailability === "Available"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              : "bg-amber-50 text-amber-700 border border-amber-200"
+          }`}>
+            ✈️ Flights {destination.flightAvailability}
           </div>
-          <div className="bg-blue-50 p-3 rounded">
-            <div className="font-semibold text-gray-700">Hotels</div>
-            <div className={
-              destination.hotelAvailability === "Available"
-                ? "text-green-600"
-                : "text-orange-600"
-            }>
-              {destination.hotelAvailability}
-            </div>
+          <div className={`flex-1 px-3 py-2 rounded-lg text-center text-sm font-medium ${
+            destination.hotelAvailability === "Available"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+              : "bg-amber-50 text-amber-700 border border-amber-200"
+          }`}>
+            🏨 Hotels {destination.hotelAvailability}
           </div>
         </div>
 
         {/* Weather */}
         {destination.weather && (
-          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 rounded">
-            <h4 className="font-semibold text-gray-900 mb-2">Weather</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-gray-600">Condition:</span>
-                <p className="font-medium">{destination.weather.condition}</p>
+          <div className="bg-linear-to-br from-sky-50 to-cyan-50 p-4 rounded-xl border border-sky-100">
+            <h4 className="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
+              <span>☁️</span> Weather Forecast
+            </h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Condition</span>
+                <span className="font-medium text-gray-900">{destination.weather.condition}</span>
               </div>
-              <div>
-                <span className="text-gray-600">Temperature:</span>
-                <p className="font-medium">{destination.weather.temperature}°C</p>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Temp</span>
+                <span className="font-medium text-gray-900">{destination.weather.temperature}°C</span>
               </div>
-              <div>
-                <span className="text-gray-600">Humidity:</span>
-                <p className="font-medium">{destination.weather.humidity}%</p>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Humidity</span>
+                <span className="font-medium text-gray-900">{destination.weather.humidity}%</span>
               </div>
-              <div>
-                <span className="text-gray-600">Wind:</span>
-                <p className="font-medium">{destination.weather.windSpeed} km/h</p>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Wind</span>
+                <span className="font-medium text-gray-900">{destination.weather.windSpeed} km/h</span>
               </div>
             </div>
           </div>
@@ -128,27 +144,25 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
 
         {/* Safety Rating */}
         {destination.safetyRating && (
-          <div className="flex items-center gap-2">
-            <span className="text-gray-600">Safety Rating:</span>
-            <div className="flex-1 bg-gray-200 rounded-full h-2">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-gray-500">Safety</span>
+            <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-green-500 h-2 rounded-full"
-                style={{
-                  width: `${(destination.safetyRating / 10) * 100}%`,
-                }}
-              ></div>
+                className="bg-linear-to-r from-emerald-400 to-emerald-500 h-2 rounded-full transition-all"
+                style={{ width: `${(destination.safetyRating / 10) * 100}%` }}
+              />
             </div>
-            <span className="font-semibold">{destination.safetyRating.toFixed(1)}/10</span>
+            <span className="text-sm font-semibold text-gray-900">{destination.safetyRating.toFixed(1)}/10</span>
           </div>
         )}
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
-          <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition">
+          <button className="flex-1 bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40">
             View Details
           </button>
-          <button className="flex-1 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-2 rounded-lg transition">
-            Save Destination
+          <button className="flex-1 border-2 border-gray-200 text-gray-700 hover:border-cyan-500 hover:text-cyan-600 font-semibold py-2.5 rounded-xl transition-all">
+            Save
           </button>
         </div>
       </div>

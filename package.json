@@ -9,20 +9,21 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.1.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
     "@prisma/client": "^5.7",
-    "prisma": "^5.7",
-    "zod": "^3.22",
     "axios": "^1.6",
-    "next-auth": "^4.24",
     "dotenv": "^16.3",
     "google-map-react": "^2.2",
-    "react-range": "^1.8"
+    "next": "16.1.1",
+    "next-auth": "^4.24",
+    "prisma": "^5.7",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-range": "^1.8",
+    "zod": "^3.22"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/google-map-react": "^2.1.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

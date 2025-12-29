@@ -9,7 +9,7 @@ interface ResultsMapProps {
   destinations: DestinationResult[];
 }
 
-const Marker = ({ label = "" }: { label?: string }) => (
+const Marker = ({ label = "" }: { label?: string; lat?: number; lng?: number }) => (
   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs shadow-lg">
     {label || "●"}
   </div>
