@@ -1,53 +1,172 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import SearchForm from "@/components/SearchForm";
+import DestinationCard from "@/components/DestinationCard";
+import { SearchResponse } from "@/lib/types";
+
+"use client";
+
+import { useState } from "react";
+import SearchForm from "@/components/SearchForm";
+import DestinationCard from "@/components/DestinationCard";
+import { SearchResponse } from "@/lib/types";
 
 export default function Home() {
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
+
+  const handleSearch = (results: SearchResponse) => {
+    setSearchResults(results);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Hero Section */}
+      <div className="relative h-screen flex items-center justify-center bg-gradient-to-r from-blue-600 to-blue-800 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <path d="M0,50 Q25,25 50,50 T100,50" stroke="white" strokeWidth="2" fill="none" />
+            <path d="M0,75 Q25,50 50,75 T100,75" stroke="white" strokeWidth="2" fill="none" />
+          </svg>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
+
+        <div className="relative z-10 container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Your Next Adventure Starts Here
+            </h1>
+            <p className="text-xl md:text-2xl text-blue-100">
+              Plan trips based on your budget, preferences, and map selection.
+              Get real-time travel recommendations powered by AI.
+            </p>
+          </div>
+
+          {/* Search Form Card */}
+          <div className="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-8">Plan Your Trip</h2>
+            <SearchForm onSearch={handleSearch} />
+          </div>
+        </div>
+      </div>
+
+      {/* Results Section */}
+      {searchResults && searchResults.results.length > 0 && (
+        <div className="container mx-auto px-4 py-16">
+          <div className="mb-8">
+            <h2 className="text-4xl font-bold text-gray-900 mb-2">
+              Perfect Destinations for You
+            </h2>
+            <p className="text-lg text-gray-600">
+              {searchResults.results.length} destinations found matching your criteria
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {searchResults.results.map((destination) => (
+              <DestinationCard key={destination.placeId} destination={destination} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {searchResults && searchResults.results.length === 0 && (
+        <div className="container mx-auto px-4 py-16">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+            <h3 className="text-2xl font-bold text-yellow-900 mb-2">
+              No Destinations Found
+            </h3>
+            <p className="text-yellow-700">
+              No destinations match your budget and date criteria. Try adjusting your budget or dates.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Features Section */}
+      <div className="bg-gray-50 py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
+            Why Choose Planova?
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow p-8">
+              <div className="text-4xl mb-4">🗺️</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Smart Map Selection
+              </h3>
+              <p className="text-gray-600">
+                Click on the map to select your destination with precision
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-8">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Budget Aware
+              </h3>
+              <p className="text-gray-600">
+                Only show destinations within your budget with detailed cost breakdowns
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-8">
+              <div className="text-4xl mb-4">⚡</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Real-Time Data
+              </h3>
+              <p className="text-gray-600">
+                Live flight prices, weather, hotels, and events at your fingertips
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+      {/* Features Section */}
+      <div className="bg-gray-50 py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold text-gray-900 mb-12 text-center">
+            Why Choose Planova?
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-lg shadow p-8">
+              <div className="text-4xl mb-4">🗺️</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Smart Map Selection
+              </h3>
+              <p className="text-gray-600">
+                Click on the map to select your destination with precision
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-8">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Budget Aware
+              </h3>
+              <p className="text-gray-600">
+                Only show destinations within your budget with detailed cost breakdowns
+              </p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-8">
+              <div className="text-4xl mb-4">⚡</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Real-Time Data
+              </h3>
+              <p className="text-gray-600">
+                Live flight prices, weather, hotels, and events at your fingertips
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
             Deploy Now
           </a>
           <a
