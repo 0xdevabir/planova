@@ -80,13 +80,13 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
   };
 
   return (
-    <div className="relative">
+    <div className="relative w-full max-w-5xl mx-auto px-2 sm:px-0">
       {/* Glow effect behind the search bar */}
-      <div className="absolute inset-0 bg-cyan-400/20 blur-2xl rounded-full scale-110" />
+      <div className="absolute inset-0 bg-cyan-400/15 blur-2xl rounded-3xl md:rounded-full scale-105" />
 
-      <div className="relative flex items-center bg-white/95 backdrop-blur-sm rounded-full shadow-2xl shadow-black/20 px-2 py-2">
+      <div className="relative flex flex-col md:flex-row items-stretch md:items-center bg-white/95 backdrop-blur-sm rounded-3xl md:rounded-full shadow-2xl shadow-black/20 gap-3 md:gap-0 px-3 md:px-2 py-3 md:py-2 border border-white/70">
         {/* Location Input */}
-        <div className="flex items-center gap-2 px-4 py-2 border-r border-gray-200">
+        <div className="flex flex-1 md:flex-none items-center gap-2 px-4 py-2 border border-gray-200 md:border-r md:border-l-0 md:border-y-0 rounded-2xl md:rounded-none md:rounded-l-full w-full">
           <svg
             className="w-5 h-5 text-gray-400"
             fill="none"
@@ -111,12 +111,12 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
             placeholder="Where you want to go?"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="bg-transparent text-gray-700 placeholder-gray-400 text-sm w-44 focus:outline-none"
+            className="bg-transparent text-gray-700 placeholder-gray-400 text-sm w-full md:w-44 focus:outline-none"
           />
         </div>
 
         {/* Date Picker */}
-        <div className="relative" ref={dateRef}>
+        <div className="relative w-full md:w-auto" ref={dateRef}>
           <button
             type="button"
             onClick={() => {
@@ -124,7 +124,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
               setShowBudgetPicker(false);
               setShowGuestsPicker(false);
             }}
-            className="flex items-center gap-2 px-4 py-2 border-r border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
+            className="w-full md:w-auto flex items-center gap-2 px-4 py-2 border border-gray-200 md:border-r md:border-l-0 md:border-y-0 hover:bg-gray-50 rounded-2xl md:rounded-none transition-colors"
           >
             <svg
               className="w-5 h-5 text-gray-400"
@@ -146,7 +146,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
           </button>
 
           {showDatePicker && (
-            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-50 min-w-[280px]">
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-50 min-w-70">
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Start Date</label>
@@ -172,7 +172,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
         </div>
 
         {/* Budget Picker */}
-        <div className="relative" ref={budgetRef}>
+        <div className="relative w-full md:w-auto" ref={budgetRef}>
           <button
             type="button"
             onClick={() => {
@@ -180,7 +180,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
               setShowDatePicker(false);
               setShowGuestsPicker(false);
             }}
-            className="flex items-center gap-2 px-4 py-2 border-r border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
+            className="w-full md:w-auto flex items-center gap-2 px-4 py-2 border border-gray-200 md:border-r md:border-l-0 md:border-y-0 hover:bg-gray-50 rounded-2xl md:rounded-none transition-colors"
           >
             <svg
               className="w-5 h-5 text-gray-400"
@@ -204,7 +204,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
           </button>
 
           {showBudgetPicker && (
-            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-50 min-w-[280px]">
+            <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-50 min-w-70">
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Min Budget</label>
@@ -238,7 +238,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
         </div>
 
         {/* Guests Picker */}
-        <div className="relative" ref={guestsRef}>
+        <div className="relative w-full md:w-auto" ref={guestsRef}>
           <button
             type="button"
             onClick={() => {
@@ -246,7 +246,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
               setShowDatePicker(false);
               setShowBudgetPicker(false);
             }}
-            className="flex items-center gap-2 px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors"
+            className="w-full md:w-auto flex items-center gap-2 px-4 py-2 hover:bg-gray-50 border border-gray-200 md:border-0 rounded-2xl md:rounded-none transition-colors"
           >
             <svg
               className="w-5 h-5 text-gray-400"
@@ -270,7 +270,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
           </button>
 
           {showGuestsPicker && (
-            <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-50 min-w-[200px]">
+            <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl p-4 z-50 min-w-50">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-700">Travelers</span>
                 <div className="flex items-center gap-3">
@@ -300,7 +300,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
           type="button"
           onClick={handleSubmit}
           disabled={loading}
-          className="flex items-center gap-2 bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 py-3 rounded-full font-medium ml-2 shadow-lg shadow-cyan-500/30 transition-all disabled:opacity-50"
+          className="w-full md:w-auto flex items-center justify-center gap-2 bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-5 md:px-6 py-3 rounded-2xl md:rounded-full font-medium md:ml-2 shadow-lg shadow-cyan-500/30 transition-all disabled:opacity-50"
         >
           <svg
             className="w-5 h-5"

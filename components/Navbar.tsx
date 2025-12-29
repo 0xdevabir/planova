@@ -6,10 +6,10 @@ import Link from "next/link";
 
 export default function Navbar() {
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
-      <div className="flex items-center gap-2 bg-zinc-800/80 backdrop-blur-md rounded-full px-4 py-2 shadow-lg border border-white/10">
+    <nav className="fixed top-4 inset-x-0 z-50 flex justify-center px-3 sm:px-4">
+      <div className="w-full max-w-5xl flex items-center gap-2 bg-zinc-900/70 backdrop-blur-lg rounded-full px-3 sm:px-4 py-2 shadow-lg border border-white/10">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 text-white font-semibold pr-4">
+        <Link href="/" className="flex items-center gap-2 text-white font-semibold pr-3 sm:pr-4">
           <svg
             className="w-5 h-5"
             fill="currentColor"
@@ -49,7 +49,7 @@ export default function Navbar() {
         </div>
 
         {/* CTA Button */}
-        <button className="flex items-center gap-2 bg-white text-zinc-900 px-4 py-1.5 rounded-full text-sm font-medium ml-2 hover:bg-gray-100 transition-colors">
+        <button className="hidden sm:flex items-center gap-2 bg-white text-zinc-900 px-4 py-1.5 rounded-full text-sm font-medium ml-auto hover:bg-gray-100 transition-colors">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
           </svg>

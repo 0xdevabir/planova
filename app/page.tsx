@@ -49,18 +49,18 @@ export default function Home() {
           style={{ backgroundImage: "url('/heroBg.jpg')" }}
         />
         {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-black/40" />
         {/* Gradient overlay at bottom */}
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/50 to-transparent" />
 
         {/* Hero Content */}
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
             Your next adventure
             <br />
             starts right here
           </h1>
-          <p className="text-lg md:text-xl text-white/80 mb-12 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-white/80 mb-12 max-w-2xl mx-auto">
             Discover tailored trips that fit your budget and style, with 24/7 support.
           </p>
 
@@ -75,7 +75,7 @@ export default function Home() {
       {/* Results Section */}
       <section id="results" className="min-h-screen bg-linear-to-b from-slate-50 to-white">
         {searchResults && searchResults.results.length > 0 && (
-          <div className="container mx-auto px-4 py-20 space-y-12">
+          <div className="container mx-auto px-4 py-16 md:py-20 space-y-12">
             <div className="text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
                 Perfect Destinations for You
@@ -85,7 +85,9 @@ export default function Home() {
               </p>
             </div>
 
-            <ResultsMap destinations={searchResults.results} />
+            <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
+              <ResultsMap destinations={searchResults.results} />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {searchResults.results.map((destination) => (
