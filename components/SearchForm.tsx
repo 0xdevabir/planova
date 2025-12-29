@@ -4,10 +4,15 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Range } from "react-range";
+import MapPicker from "@/components/MapPicker";
 
 interface SearchFormProps {
   onSearch?: (results: any) => void;
 }
+
+const BUDGET_MIN = 100;
+const BUDGET_MAX = 20000;
 
 export default function SearchForm({ onSearch }: SearchFormProps) {
   const router = useRouter();
@@ -24,13 +29,15 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       .split("T")[0],
     travelers: 1,
     currency: "USD",
+    tripType: "Adventure",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    const numericFields = ["travelers", "budgetMin", "budgetMax"];
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: numericFields.includes(name) ? Number(value) : value,
     }));
   };
 
@@ -48,11 +55,10 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       if (!response.ok) throw new Error("Search failed");
 
       const results = await response.json();
-      
+
       if (onSearch) {
         onSearch(results);
       } else {
-        // Redirect to results page with data
         router.push(
           `/results?query=${encodeURIComponent(JSON.stringify(formData))}`
         );
@@ -66,9 +72,8 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   };
 
   return (
-    <form onSubmit={handleSearch} className="space-y-4">
+    <form onSubmit={handleSearch} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Destination */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Destination
@@ -83,7 +88,6 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
           />
         </div>
 
-        {/* Number of Travelers */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Travelers
@@ -98,7 +102,41 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
           />
         </div>
 
-        {/* Start Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Trip Type
+          </label>
+          <select
+            name="tripType"
+            value={formData.tripType}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option>Adventure</option>
+            <option>Relax</option>
+            <option>City</option>
+            <option>Nature</option>
+            <option>Luxury</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Currency
+          </label>
+          <select
+            name="currency"
+            value={formData.currency}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option>USD</option>
+            <option>EUR</option>
+            <option>GBP</option>
+            <option>JPY</option>
+          </select>
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Start Date
@@ -112,7 +150,6 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
           />
         </div>
 
-        {/* End Date */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             End Date
@@ -125,38 +162,63 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
+      </div>
 
-        {/* Budget Min */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Min Budget (USD)
-          </label>
-          <input
-            type="number"
-            name="budgetMin"
-            min="0"
-            step="100"
-            value={formData.budgetMin}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Budget Range (USD)
+        </label>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+          <Range
+            values={[formData.budgetMin, formData.budgetMax]}
+            step={50}
+            min={BUDGET_MIN}
+            max={BUDGET_MAX}
+            onChange={(values) =>
+              setFormData((prev) => ({
+                ...prev,
+                budgetMin: values[0],
+                budgetMax: values[1],
+              }))
+            }
+            renderTrack={({ props, children }) => (
+              <div
+                {...props}
+                className="h-2 bg-gray-200 rounded-full"
+                style={props.style}
+              >
+                {children}
+              </div>
+            )}
+            renderThumb={({ props }) => (
+              <div
+                {...props}
+                className="w-4 h-4 bg-blue-600 rounded-full shadow"
+                style={props.style}
+              />
+            )}
           />
+          <div className="flex justify-between text-sm text-gray-700 mt-2">
+            <span>${formData.budgetMin.toLocaleString()}</span>
+            <span>${formData.budgetMax.toLocaleString()}</span>
+          </div>
         </div>
+      </div>
 
-        {/* Budget Max */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Max Budget (USD)
-          </label>
-          <input
-            type="number"
-            name="budgetMax"
-            min="0"
-            step="100"
-            value={formData.budgetMax}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm text-gray-700">
+          <span>Map Selection</span>
+          <span className="font-medium">
+            {formData.latitude.toFixed(3)}, {formData.longitude.toFixed(3)}
+          </span>
         </div>
+        <MapPicker
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onSelect={({ latitude, longitude }) =>
+            setFormData((prev) => ({ ...prev, latitude, longitude }))
+          }
+        />
       </div>
 
       <button

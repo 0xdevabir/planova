@@ -3,6 +3,7 @@
 import { useState } from "react";
 import SearchForm from "@/components/SearchForm";
 import DestinationCard from "@/components/DestinationCard";
+import ResultsMap from "@/components/ResultsMap";
 import { SearchResponse } from "@/lib/types";
 
 "use client";
@@ -52,8 +53,8 @@ export default function Home() {
 
       {/* Results Section */}
       {searchResults && searchResults.results.length > 0 && (
-        <div className="container mx-auto px-4 py-16">
-          <div className="mb-8">
+        <div className="container mx-auto px-4 py-16 space-y-10">
+          <div className="mb-4">
             <h2 className="text-4xl font-bold text-gray-900 mb-2">
               Perfect Destinations for You
             </h2>
@@ -61,6 +62,8 @@ export default function Home() {
               {searchResults.results.length} destinations found matching your criteria
             </p>
           </div>
+
+          <ResultsMap destinations={searchResults.results} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {searchResults.results.map((destination) => (
