@@ -1,0 +1,142 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  password  String?
+  image     String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  trips              Trip[]
+  savedDestinations  SavedDestination[]
+  preferences        UserPreferences?
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tripTypes String[] @default(["Adventure", "Relax", "City", "Nature"])
+  currency  String   @default("USD")
+  language  String   @default("en")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+model Trip {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  destination   String
+  latitude      Float
+  longitude     Float
+  radius        Float?   @default(25) // in km
+
+  budgetMin     Float
+  budgetMax     Float
+  currency      String   @default("USD")
+
+  startDate     DateTime
+  endDate       DateTime
+  travelers     Int      @default(1)
+
+  tripType      String?  // Adventure, Relax, City, Nature, Luxury
+  
+  results       SearchResult[]
+  savedDestinations SavedDestination[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@map("trips")
+}
+
+model SearchResult {
+  id            String   @id @default(cuid())
+  tripId        String
+  trip          Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  placeName     String
+  placeId       String
+  latitude      Float
+  longitude     Float
+
+  estimatedFlightCost    Float
+  estimatedHotelCost     Float
+  estimatedDailyCost     Float
+  totalEstimatedCost     Float
+  
+  flightAvailability  String? // "Available", "Limited", "Unavailable"
+  hotelAvailability   String? // "Available", "Limited", "Unavailable"
+
+  weather       String?  // JSON string
+  safetyRating  Float?   @default(0) // 0-10 scale
+
+  valueScore    Float?   // Ranking score
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([placeId])
+  @@map("search_results")
+}
+
+model SavedDestination {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tripId        String?
+  trip          Trip?    @relation(fields: [tripId], references: [id], onDelete: SetNull)
+
+  placeName     String
+  placeId       String
+  latitude      Float
+  longitude     Float
+
+  notes         String?
+  estimatedCost Float?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, placeId])
+  @@index([userId])
+  @@index([tripId])
+  @@map("saved_destinations")
+}
+
+model CachedApiResponse {
+  id        String   @id @default(cuid())
+  apiName   String   // "flights", "hotels", "weather", etc.
+  key       String   // hash of query params
+  
+  data      String   // JSON string
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  @@unique([apiName, key])
+  @@index([expiresAt])
+  @@map("cached_api_responses")
+}
