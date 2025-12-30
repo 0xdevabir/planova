@@ -2,6 +2,7 @@
 
 "use client";
 
+import type React from "react";
 import GoogleMapReact from "google-map-react";
 import { DestinationResult } from "@/lib/types";
 
@@ -9,8 +10,11 @@ interface ResultsMapProps {
   destinations: DestinationResult[];
 }
 
-const Marker = ({ label = "" }: { label?: string; lat?: number; lng?: number }) => (
-  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-xs shadow-lg">
+const Marker = ({ label = "", style }: { label?: string; style?: React.CSSProperties; lat?: number; lng?: number }) => (
+  <div
+    className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-[11px] shadow-lg marker-pop"
+    style={style}
+  >
     {label || "●"}
   </div>
 );
@@ -38,8 +42,14 @@ export default function ResultsMap({ destinations }: ResultsMapProps) {
         defaultCenter={defaultCenter}
         defaultZoom={4}
       >
-        {destinations.map((dest) => (
-          <Marker key={dest.placeId} lat={dest.latitude} lng={dest.longitude} label={dest.name} />
+        {destinations.map((dest, index) => (
+          <Marker
+            key={dest.placeId}
+            lat={dest.latitude}
+            lng={dest.longitude}
+            label={dest.name}
+            style={{ animationDelay: `${Math.min(index * 90, 600)}ms` }}
+          />
         ))}
       </GoogleMapReact>
     </div>

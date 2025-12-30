@@ -3,6 +3,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { FaCalendarAlt, FaDollarSign, FaUser } from "react-icons/fa";
 
 interface HeroSearchBarProps {
   onSearch: (data: SearchData) => void;
@@ -172,16 +173,14 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
   };
 
   return (
-    <div className="relative w-full max-w-4xl mx-auto px-4">
-      {/* Glow effect behind the search bar */}
-      <div className="absolute -inset-2 bg-linear-to-r from-cyan-400/30 via-blue-500/30 to-cyan-400/30 blur-3xl rounded-full" />
-
-      <div className="relative bg-white/95 backdrop-blur-lg rounded-full shadow-2xl shadow-cyan-500/25">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+    <div className="relative w-full max-w-5xl mx-auto px-4">
+      <div className="absolute -inset-4 bg-white/12 blur-3xl opacity-80 pointer-events-none" />
+      <div className="relative rounded-full border border-white/25 bg-white/20 backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
+        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3">
           {/* Location Input */}
-          <div className="relative flex items-center gap-3 px-6 py-4 sm:py-3.5 flex-1 min-w-0" ref={autocompleteRef}>
+          <div className="relative flex items-center gap-3 px-4 py-3 bg-white/70 rounded-full flex-1 min-w-0" ref={autocompleteRef}>
             <svg
-              className="w-5 h-5 text-gray-400 flex-shrink-0"
+              className="w-5 h-5 text-gray-500 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -207,9 +206,9 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setDestination(e.target.value);
                 setSelectedLocation(null);
               }}
-              className="bg-transparent text-gray-700 placeholder-gray-400 text-sm w-full focus:outline-none"
+              className="bg-transparent text-gray-800 placeholder-gray-500 text-sm sm:text-base w-full focus:outline-none"
             />
-            
+
             {/* Autocomplete Dropdown */}
             {showAutocomplete && predictions.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-80 overflow-y-auto z-50">
@@ -221,7 +220,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                     className="w-full px-5 py-3 text-left hover:bg-cyan-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0"
                   >
                     <svg
-                      className="w-4 h-4 text-gray-400 flex-shrink-0"
+                      className="w-4 h-4 text-gray-400 shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -249,32 +248,14 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setShowBudgetPicker(false);
                 setShowGuestsPicker(false);
               }}
-              className="w-full sm:w-auto flex items-center gap-2 px-6 py-4 sm:py-3.5 hover:bg-gray-50/50 transition-colors"
+              aria-label={`Change dates (${formatDateRange()})`}
+              className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
             >
-              <svg
-                className="w-5 h-5 text-gray-400 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-gray-500">Date</span>
-                <span className="text-sm text-gray-700 font-medium truncate">{formatDateRange()}</span>
-              </div>
-              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <FaCalendarAlt className="w-5 h-5 shrink-0" />
             </button>
 
             {showDatePicker && (
-              <div className="absolute top-full left-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-72">
+              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-72">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-2">Start Date</label>
@@ -308,34 +289,14 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setShowDatePicker(false);
                 setShowGuestsPicker(false);
               }}
-              className="w-full sm:w-auto flex items-center gap-2 px-6 py-4 sm:py-3.5 hover:bg-gray-50/50 transition-colors"
+              aria-label={`Adjust budget (${budgetMin.toLocaleString()} to ${budgetMax.toLocaleString()})`}
+              className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
             >
-              <svg
-                className="w-5 h-5 text-gray-400 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-gray-500">Budget</span>
-                <span className="text-sm text-gray-700 font-medium truncate">
-                  ${budgetMin.toLocaleString()} - ${budgetMax.toLocaleString()}
-                </span>
-              </div>
-              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <FaDollarSign className="w-5 h-5 shrink-0" />
             </button>
 
             {showBudgetPicker && (
-              <div className="absolute top-full left-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-80">
+              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-80">
                 <div className="space-y-5">
                   <div>
                     <div className="flex justify-between items-center mb-2">
@@ -381,30 +342,10 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setShowDatePicker(false);
                 setShowBudgetPicker(false);
               }}
-              className="w-full sm:w-auto flex items-center gap-2 px-6 py-4 sm:py-3.5 hover:bg-gray-50/50 transition-colors"
+              aria-label={`Guests (${travelers})`}
+              className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
             >
-              <svg
-                className="w-5 h-5 text-gray-400 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs text-gray-500">Guests</span>
-                <span className="text-sm text-gray-700 font-medium truncate">
-                  {travelers} Guest{travelers > 1 ? "s" : ""}
-                </span>
-              </div>
-              <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <FaUser className="w-5 h-5 shrink-0" />
             </button>
 
             {showGuestsPicker && (
@@ -434,12 +375,12 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
           </div>
 
           {/* Search Button */}
-          <div className="p-2 sm:p-1.5">
+          <div className="p-1.5">
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-linear-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white pl-8 pr-8 sm:pl-6 sm:pr-6 py-3 sm:py-2.5 rounded-full font-semibold text-sm transition-all disabled:opacity-50 shadow-lg shadow-cyan-500/50 hover:shadow-xl hover:shadow-cyan-500/60 whitespace-nowrap"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-linear-to-r from-[#212a21] via-[#151c15] to-[#151d15]  text-white px-6 sm:px-7 py-3 rounded-full font-semibold text-sm transition-all disabled:opacity-50 shadow-[0_6px_10px_rgb(21,29,21)] hover:shadow-[0_8px_16px_rgb(21,29,21)] whitespace-nowrap"
             >
               <svg
                 className="w-5 h-5"

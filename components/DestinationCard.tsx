@@ -8,7 +8,7 @@ interface DestinationCardProps {
 
 export default function DestinationCard({ destination }: DestinationCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 border border-gray-100 group">
+    <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 border border-gray-100 group hover-lift">
       {/* Header with gradient */}
       <div className="bg-linear-to-br from-cyan-500 via-blue-500 to-indigo-600 p-5 text-white relative overflow-hidden">
         {/* Decorative circles */}
@@ -158,10 +158,10 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
-          <button className="flex-1 bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40">
+          <button className="flex-1 bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift">
             View Details
           </button>
-          <button className="flex-1 border-2 border-gray-200 text-gray-700 hover:border-cyan-500 hover:text-cyan-600 font-semibold py-2.5 rounded-xl transition-all">
+          <button className="flex-1 border-2 border-gray-200 text-gray-700 hover:border-cyan-500 hover:text-cyan-600 font-semibold py-2.5 rounded-xl transition-all hover-lift">
             Save
           </button>
         </div>
