@@ -17,14 +17,9 @@ export async function getWeatherData(
   if (cached) return cached;
 
   try {
-    const apiKey = process.env.OPENWEATHER_API_KEY;
-    if (!apiKey) {
-      // Return mock data if API key not configured
-      return getMockWeather();
-    }
-
     const response = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&wind_speed_unit=kmh`,
+      { next: { revalidate: 3600 } } // Cache for 1 hour
     );
 
     if (!response.ok) {
@@ -32,13 +27,17 @@ export async function getWeatherData(
     }
 
     const data = await response.json();
+    const current = data.current_weather;
+
+    // Map WMO weather codes to readable conditions
+    const weatherCondition = getWeatherCondition(current.weathercode);
 
     const weather: WeatherData = {
-      temperature: Math.round(data.main.temp),
-      condition: data.weather[0].main,
-      humidity: data.main.humidity,
-      windSpeed: Math.round(data.wind.speed * 3.6), // m/s to km/h
-      precipitation: data.rain?.["1h"] || 0,
+      temperature: Math.round(current.temperature),
+      condition: weatherCondition,
+      humidity: 65, // Open-Meteo doesn't provide humidity in current weather
+      windSpeed: Math.round(current.windspeed),
+      precipitation: 0, // Not available in current endpoint
     };
 
     // Cache for 3 hours
@@ -58,4 +57,20 @@ function getMockWeather(): WeatherData {
     windSpeed: 15,
     precipitation: 0,
   };
+}
+
+// Map WMO Weather Codes to readable conditions
+function getWeatherCondition(code: number): string {
+  if (code === 0) return "Clear sky";
+  if (code === 1 || code === 2) return "Partly cloudy";
+  if (code === 3) return "Overcast";
+  if (code === 45 || code === 48) return "Foggy";
+  if (code === 51 || code === 53 || code === 55) return "Light drizzle";
+  if (code === 61 || code === 63 || code === 65) return "Rainy";
+  if (code === 71 || code === 73 || code === 75) return "Snow";
+  if (code === 77) return "Snow grains";
+  if (code === 80 || code === 81 || code === 82) return "Rain showers";
+  if (code === 85 || code === 86) return "Snow showers";
+  if (code === 95 || code === 96 || code === 99) return "Thunderstorm";
+  return "Unknown";
 }

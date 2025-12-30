@@ -19,10 +19,11 @@ const Marker = ({ label = "" }: { label?: string; lat?: number; lng?: number }) 
 export default function MapPicker({ latitude, longitude, onSelect }: MapPickerProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  if (!apiKey) {
+  const invalidKey = !apiKey || apiKey.trim() === ".." || apiKey.trim() === "..." || apiKey.trim().length < 25;
+  if (invalidKey) {
     return (
       <div className="w-full h-64 rounded-xl border border-dashed border-gray-300 flex items-center justify-center text-gray-500 bg-gray-50">
-        Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable map selection.
+        Configure a valid Google Maps API key in .env.local (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) to enable map selection.
       </div>
     );
   }

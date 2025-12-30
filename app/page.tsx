@@ -21,7 +21,11 @@ export default function Home() {
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) throw new Error("Search failed");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Search failed");
+      }
+      
       const results = await response.json();
       setSearchResults(results);
 
@@ -31,6 +35,28 @@ export default function Home() {
       }, 100);
     } catch (error) {
       console.error("Search error:", error);
+      // Show error to user with empty results, preserving shape of SearchResponse
+      setSearchResults({
+        query: {
+          destination: formData.destination,
+          latitude: Number(formData.latitude) || 0,
+          longitude: Number(formData.longitude) || 0,
+          radius: Number((formData as any).radius) || 25,
+          budgetMin: Number(formData.budgetMin) || 0,
+          budgetMax: Number(formData.budgetMax) || 0,
+          currency: formData.currency || "USD",
+          startDate: new Date(formData.startDate),
+          endDate: new Date(formData.endDate),
+          travelers: Number(formData.travelers) || 1,
+          tripType: (formData as any).tripType,
+        },
+        results: [],
+        totalCount: 0,
+        timestamp: new Date(),
+      });
+      setTimeout(() => {
+        document.getElementById("results")?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     } finally {
       setLoading(false);
     }
@@ -49,7 +75,7 @@ export default function Home() {
           style={{ backgroundImage: "url('/heroBg.jpg')" }}
         />
         {/* Dark overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/50" />
         {/* Gradient overlay at bottom */}
         <div className="absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-black/50 to-transparent" />
 
@@ -101,12 +127,21 @@ export default function Home() {
           <div className="container mx-auto px-4 py-20">
             <div className="bg-cyan-50 border border-cyan-200 rounded-2xl p-12 text-center max-w-2xl mx-auto">
               <div className="text-6xl mb-4">🔍</div>
-              <h3 className="text-2xl font-bold text-cyan-900 mb-2">
-                No Destinations Found
+              <h3 className="text-2xl font-bold text-cyan-900 mb-4">
+                No Destinations Found in {searchResults.query.destination}
               </h3>
-              <p className="text-cyan-700">
-                No destinations match your budget and date criteria. Try adjusting your budget or dates.
+              <p className="text-cyan-700 mb-6">
+                We couldn't find any tourist destinations or places of interest in this location that match your search criteria.
               </p>
+              <div className="bg-white/60 rounded-xl p-4 text-sm text-cyan-800">
+                <p className="font-medium mb-2">Try:</p>
+                <ul className="text-left space-y-1">
+                  <li>• Searching for a larger city or region</li>
+                  <li>• Adjusting your budget range</li>
+                  <li>• Changing your travel dates</li>
+                  <li>• Checking if the location name is spelled correctly</li>
+                </ul>
+              </div>
             </div>
           </div>
         )}

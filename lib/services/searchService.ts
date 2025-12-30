@@ -21,15 +21,16 @@ export async function searchDestinations(
 
   try {
     // Get nearby destinations
-    const destinations = await getNearbyDestinations(
+    const nearby = await getNearbyDestinations(
       params.latitude,
       params.longitude,
       params.radius,
-      20
+      20,
+      params.destination
     );
 
     // Calculate costs for each destination
-    const resultsPromises = destinations.map(async (dest) => {
+    const resultsPromises = nearby.map(async (dest) => {
       const costs = await calculateDestinationCosts(dest, params);
 
       const result: DestinationResult = {

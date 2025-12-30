@@ -18,8 +18,13 @@ const Marker = ({ label = "" }: { label?: string; lat?: number; lng?: number }) 
 export default function ResultsMap({ destinations }: ResultsMapProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  if (!apiKey) {
-    return null;
+  const invalidKey = !apiKey || apiKey.trim() === ".." || apiKey.trim() === "..." || apiKey.trim().length < 25;
+  if (invalidKey) {
+    return (
+      <div className="w-full h-96 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center bg-gray-50 text-gray-600">
+        Configure a valid Google Maps API key in .env.local as NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      </div>
+    );
   }
 
   const defaultCenter = destinations[0]

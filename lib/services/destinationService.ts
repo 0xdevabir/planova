@@ -62,43 +62,82 @@ export async function getNearbyDestinations(
   latitude: number,
   longitude: number,
   radius: number = 25,
-  limit: number = 10
+  limit: number = 10,
+  query?: string
 ): Promise<Destination[]> {
   const cacheKey = generateCacheKey(
     "destinations",
     latitude.toString(),
     longitude.toString(),
-    radius.toString()
+    radius.toString(),
+    (query || "").toLowerCase()
   );
 
   const cached = getCached<Destination[]>(cacheKey);
   if (cached) return cached;
 
   try {
-    // Real implementation would use Google Places API
-    // For MVP: return mock destinations filtered by distance
-    const allDestinations = mockDestinations.default;
+    // Try to fetch real places from Google Places API via our API route
+    // First, try a query-based search (more specific)
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/places/search?query=${encodeURIComponent(query || "tourist attractions")}&latitude=${latitude}&longitude=${longitude}`;
+    console.log("Fetching destinations from:", url);
+    
+    let response = await fetch(url);
 
-    // Simple distance calculation (Haversine formula)
-    const destinations = allDestinations
-      .map((dest) => ({
-        ...dest,
-        distance: getDistance(latitude, longitude, dest.latitude, dest.longitude),
-      }))
-      .filter((d) => d.distance <= radius)
-      .sort((a, b) => a.distance - b.distance)
-      .slice(0, limit)
-      .map(({ distance, ...dest }) => dest); // Remove distance field
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Received destinations response:", { placesCount: data.places?.length, error: data.error });
+      
+      if (data.places && data.places.length > 0) {
+        // Deduplicate by placeId and name
+        const seenIds = new Set<string>();
+        const seenNames = new Set<string>();
+        
+        const destinations: Destination[] = data.places
+          .filter((place: any) => {
+            const id = place.placeId || "";
+            const name = (place.name || "").toLowerCase();
+            
+            // Skip if we've already seen this placeId or name
+            if (seenIds.has(id) || seenNames.has(name)) {
+              return false;
+            }
+            
+            seenIds.add(id);
+            seenNames.add(name);
+            return true;
+          })
+          .map((place: any) => ({
+            placeId: place.placeId,
+            name: place.name,
+            latitude: place.latitude,
+            longitude: place.longitude,
+            address: place.address,
+            description: place.description || "Tourist destination",
+            rating: place.rating || 4.0,
+            reviews: place.reviews || 0,
+          }));
 
-    // If no nearby destinations, return defaults
-    const results = destinations.length > 0 ? destinations : allDestinations.slice(0, limit);
+        console.log("Deduped destinations:", destinations.length);
+        
+        // Cache for 24 hours
+        setCached(cacheKey, destinations, 24 * 60 * 60 * 1000);
+        return destinations.slice(0, limit);
+      }
+    } else {
+      console.log("Destinations API response not ok:", response.status, response.statusText);
+    }
 
-    // Cache for 24 hours
-    setCached(cacheKey, results, 24 * 60 * 60 * 1000);
-    return results;
+    // If API returns no results but was successful, return empty array
+    // Don't fall back to mock data - it's misleading
+    console.log("No real destinations found from API for query:", query);
+    const emptyResult: Destination[] = [];
+    setCached(cacheKey, emptyResult, 24 * 60 * 60 * 1000);
+    return emptyResult;
   } catch (error) {
     console.error("Error fetching destinations:", error);
-    return mockDestinations.default;
+    // Only return mock data if there's an actual error, not if API returns nothing
+    return [];
   }
 }
 
