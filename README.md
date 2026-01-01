@@ -1,4 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Planova – Smart Travel Planner
+
+Planova turns a simple location input into curated, budget-aware destination ideas. It mixes map data, flight/hotel cost estimation, and weather to surface the best-value trips with a clean Next.js experience.
+
+## How it works
+- User enters a place/date/budget in the UI; the app calls the server route at `app/api/search/route.ts`.
+- `searchService` aggregates nearby places from `app/api/places/search` (Google Places when a key exists; falls back to OpenStreetMap/Nominatim).
+- For each destination, mock flight and hotel estimators plus weather are combined into a `valueScore`, then filtered by the user’s budget.
+- Results are cached server-side to keep responses fast and reduce external calls.
+
+## Features
+- Destination search by coordinates, radius, and budget guardrails
+- Google Places with OSM fallback for global coverage
+- Estimated flights, hotels, and daily costs with value scoring
+- Weather snapshot per destination
+- Server-side caching for results and supporting lookups
+- Next.js App Router, TypeScript, and Tailwind/PostCSS setup
+
+## Project structure
+- `app/` – routes, API handlers, and pages (App Router)
+- `components/` – UI elements (maps, search, cards, nav)
+- `lib/services/` – search, destination lookup, budget, flights, hotels, weather
+- `lib/utils/cache.ts` – simple in-memory cache helper
+- `prisma/` – schema placeholder for future persistence
+
+## Prerequisites
+- Node.js 18+
+- npm (or pnpm/yarn/bun)
+
+## Running locally
+```bash
+npm install
+npm run dev
+# visit http://localhost:3000
+```
+
+## Environment variables
+Create `.env.local` with:
+
+```
+# Required for production to resolve internal API calls
+NEXT_PUBLIC_BASE_URL=https://your-deployed-domain.com
+
+# Search providers
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-key
+GOOGLE_MAPS_API_KEY=your-google-key
+
+# Auth (if enabling NextAuth)
+NEXTAUTH_SECRET=your-secret
+NEXTAUTH_URL=https://your-deployed-domain.com
+
+# Optional integrations (currently mocked)
+AMADEUS_CLIENT_ID=...
+AMADEUS_CLIENT_SECRET=...
+SKYSCANNER_API_KEY=...
+KIWI_API_KEY=...
+BOOKING_API_KEY=...
+EXPEDIA_API_KEY=...
+TICKETMASTER_API_KEY=...
+EVENTBRITE_API_KEY=...
+EXCHANGE_RATE_API_KEY=...
+```
+
+Notes:
+- `NEXT_PUBLIC_BASE_URL` is critical in production; without it the server fetches default to `http://localhost:3000` and destinations will be empty after deploy.
+- If you omit the Google key, searches fall back to OSM/Nominatim with reduced detail.
+
+## Deployment checklist
+- Set all env vars in your hosting provider (at least `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`).
+- Build: `npm run build`.
+- Deploy static output and serverless functions (Vercel recommended).
+
+## Troubleshooting
+- **No destinations in production:** ensure `NEXT_PUBLIC_BASE_URL` points to the live domain and the Google Maps key is present; redeploy after updating env vars.
+- **Rate limits on OSM:** supply a Google key to reduce reliance on Nominatim.
+
+## Scripts
+- `npm run dev` – start local dev
+- `npm run build` – production build
+- `npm run start` – run built app
+
+## License
+MITThis is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
 
