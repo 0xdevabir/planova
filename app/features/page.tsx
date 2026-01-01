@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import { useEffect } from "react";
 import type { CSSProperties } from "react";
 
 const featureSets = [
@@ -26,6 +29,30 @@ const featureSets = [
 ];
 
 export default function FeaturesPage() {
+  // Ensure reveal-on-scroll elements become visible in production where hydration might delay class application.
+  useEffect(() => {
+    const elements = Array.from(document.querySelectorAll(".reveal-on-scroll")) as HTMLElement[];
+    if (!("IntersectionObserver" in window)) {
+      elements.forEach((el) => el.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.16 }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen bg-linear-to-b from-slate-950 via-slate-900 to-white text-white">
       <Navbar />
@@ -51,6 +78,15 @@ export default function FeaturesPage() {
 
       <section className="relative bg-white text-slate-900 rounded-t-4xl -mt-8 pb-16 pt-10">
         <div className="max-w-6xl mx-auto px-4 space-y-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 reveal-on-scroll">
+            {[{ label: "Live destinations fetched", value: "150k+" }, { label: "Avg. response time", value: "< 350ms" }, { label: "Coverage", value: "190+ countries" }].map((stat) => (
+              <div key={stat.label} className="rounded-2xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-5 shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+                <p className="text-sm text-slate-500 uppercase tracking-[0.12em]">{stat.label}</p>
+                <p className="text-3xl font-semibold mt-2 text-slate-900">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {featureSets.map((item, idx) => (
               <div key={item.title} className="rounded-3xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)] hover:shadow-[0_30px_80px_rgba(0,0,0,0.1)] transition-shadow reveal-on-scroll hover-lift" style={{ "--reveal-delay": `${60 + idx * 80}ms` } as CSSProperties}>
@@ -77,15 +113,61 @@ export default function FeaturesPage() {
           </div>
 
           <div className="rounded-3xl bg-slate-900 text-white p-8 border border-white/10 shadow-[0_25px_80px_rgba(0,0,0,0.35)] reveal-on-scroll">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-              <div className="md:col-span-2 space-y-2">
-                <h3 className="text-2xl font-semibold">Built to stay responsive</h3>
-                <p className="text-white/80">Our layout system keeps controls thumb-friendly on mobile while preserving density on desktop.</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+              <div className="lg:col-span-2 space-y-3">
+                <p className="text-xs uppercase tracking-[0.2em] text-white/60">Experience</p>
+                <h3 className="text-3xl font-semibold">Built to stay responsive</h3>
+                <p className="text-white/80">Controls stay thumb-friendly on mobile, dense on desktop, and animated just enough to feel alive without slowing anything down.</p>
+                <div className="flex flex-wrap gap-2 text-sm text-white/80">
+                  <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Thumb reach safe zones</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Adaptive grids</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Micro-interactions</span>
+                  <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Fast hydration</span>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2 text-sm text-white/80">
-                <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Thumb reach safe zones</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Adaptive grids</span>
-                <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15">Micro-interactions</span>
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-5 space-y-4">
+                {["SSR + streaming", "Edge-friendly fetches", "Optimistic UI hooks", "Graceful fallbacks"].map((item) => (
+                  <div key={item} className="flex items-center gap-3 text-sm text-white/85">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch reveal-on-scroll">
+            <div className="rounded-3xl border border-slate-200 bg-linear-to-br from-white to-slate-50 p-8 shadow-[0_20px_60px_rgba(0,0,0,0.05)]">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Pipeline</p>
+              <h3 className="text-2xl font-semibold text-slate-900 mt-2">From tap to tailored list</h3>
+              <ol className="mt-4 space-y-3 text-slate-700 text-sm">
+                {[
+                  "User taps map or types a destination; we geocode and set coordinates.",
+                  "API fan-out hits Google Places first; OSM/Nominatim backfills when needed.",
+                  "Flight + hotel estimators generate cost ranges per traveler and date window.",
+                  "Weather and availability signals enrich the card; valueScore ranks results.",
+                  "Cache trims repeat calls so reruns are instant for similar queries.",
+                ].map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="h-7 w-7 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center mt-0.5">{i + 1}</span>
+                    <span className="leading-relaxed">{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="rounded-3xl border border-slate-200 bg-linear-to-br from-slate-900 to-slate-950 p-8 text-white shadow-[0_25px_80px_rgba(0,0,0,0.3)]">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/60">Stack</p>
+              <h3 className="text-2xl font-semibold mt-2">What powers Planova</h3>
+              <div className="grid grid-cols-2 gap-3 mt-5 text-sm text-white/85">
+                {["Next.js App Router", "Server Actions", "Edge-ready APIs", "TypeScript", "Tailwind/PostCSS", "OpenStreetMap", "Google Places", "In-memory cache"].map((item) => (
+                  <div key={item} className="px-3 py-2 rounded-xl bg-white/10 border border-white/10 flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                    <span>{item}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 text-sm text-white/70 leading-relaxed">
+                Production note: set `NEXT_PUBLIC_BASE_URL` and `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` so server fetches resolve to your live domain with full data quality.
               </div>
             </div>
           </div>
