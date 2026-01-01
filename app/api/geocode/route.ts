@@ -10,30 +10,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "query is required" }, { status: 400 });
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-  // Try Google Geocoding first if API key exists
-  try {
-    if (apiKey) {
-      const gUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        query
-      )}&key=${apiKey}`;
-      const gRes = await fetch(gUrl, { next: { revalidate: 3600 } });
-      const gData = await gRes.json();
-      if (gData.status === "OK" && gData.results?.length) {
-        const r = gData.results[0];
-        return NextResponse.json({
-          name: r.formatted_address,
-          latitude: r.geometry.location.lat,
-          longitude: r.geometry.location.lng,
-        });
-      }
-    }
-  } catch (e) {
-    console.warn("Google geocoding failed, falling back to OSM");
-  }
-
-  // Fallback to Nominatim (OSM)
+  // Use Nominatim (OpenStreetMap)
   try {
     const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(
       query

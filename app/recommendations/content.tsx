@@ -77,6 +77,7 @@ export default function RecommendationsContent() {
 
   console.log("hasResults:", hasResults);
   console.log("searchResults:", searchResults);
+  console.log("results array:", searchResults?.results);
 
   const resultStats = useMemo(() => {
     if (!hasResults || !searchResults) return null;
@@ -106,7 +107,7 @@ export default function RecommendationsContent() {
 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [searchResults]);
 
   if (loading) {
     return (
@@ -179,21 +180,7 @@ export default function RecommendationsContent() {
         {hasResults && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {searchResults.results.map((destination, index) => (
-              <div key={destination.placeId} className="reveal-on-scroll" style={{ "--reveal-delay": `${80 + index * 50}ms` } as CSSProperties}>
-                <DestinationCard destination={destination} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Always show results for debugging */}
-        {searchResults && searchResults.results && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-            <div className="col-span-full text-center text-sm text-gray-500 mb-4">
-              Debug: Showing {searchResults.results.length} results (hasResults: {hasResults.toString()})
-            </div>
-            {searchResults.results.map((destination, index) => (
-              <div key={destination.placeId || index} className="reveal-on-scroll" style={{ "--reveal-delay": `${80 + index * 50}ms` } as CSSProperties}>
+              <div key={destination.placeId || index}>
                 <DestinationCard destination={destination} />
               </div>
             ))}
