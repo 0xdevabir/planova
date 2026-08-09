@@ -10,6 +10,7 @@ export default function SupportPage() {
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       <HeroSection
+        theme="mint"
         eyebrow="Support"
         title={
           <>

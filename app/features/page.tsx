@@ -55,6 +55,7 @@ export default function FeaturesPage() {
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       <HeroSection
+        theme="cyan"
         eyebrow="Features"
         title={
           <>

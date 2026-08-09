@@ -49,6 +49,7 @@ export default function TestimonialsPage() {
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       <HeroSection
+        theme="sunset"
         eyebrow="Testimonials"
         title={
           <>

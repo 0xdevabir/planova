@@ -34,6 +34,7 @@ export default function HowItWorks() {
     <div className="min-h-screen bg-slate-950">
       <Navbar />
       <HeroSection
+        theme="indigo"
         eyebrow="How it works"
         title={
           <>
