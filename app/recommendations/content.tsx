@@ -8,6 +8,7 @@ import ResultsMap from "@/components/ResultsMap";
 import FilterSidebar, { FilterState } from "@/components/FilterSidebar";
 import CompareBar from "@/components/CompareBar";
 import ComparisonModal from "@/components/ComparisonModal";
+import ItineraryModal from "@/components/ItineraryModal";
 import { Card, EmptyState, Skeleton, SkeletonStack, StatTile } from "@/components/ui";
 import { SearchResponse, DestinationResult } from "@/lib/types";
 import { applyFilters, sortResults, priceBounds } from "@/lib/utils/filters";
@@ -33,6 +34,7 @@ export default function RecommendationsContent() {
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [itineraryTarget, setItineraryTarget] = useState<DestinationResult | null>(null);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -279,7 +281,11 @@ export default function RecommendationsContent() {
                         onToggle={() => toggleCompare(destination)}
                         disabled={!compareIds.includes(destination.placeId) && compareIds.length >= 3}
                       />
-                      <DestinationCard destination={destination} currency={currency} />
+                      <DestinationCard
+                        destination={destination}
+                        currency={currency}
+                        onItinerary={(d) => setItineraryTarget(d)}
+                      />
                     </div>
                   ))}
                 </div>
@@ -317,6 +323,14 @@ export default function RecommendationsContent() {
         destinations={compareList}
         onClose={() => setCompareOpen(false)}
         currency={currency}
+      />
+
+      <ItineraryModal
+        destination={itineraryTarget}
+        startDate={searchParams.get("startDate") || new Date().toISOString().split("T")[0]}
+        endDate={searchParams.get("endDate") || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
+        currency={currency}
+        onClose={() => setItineraryTarget(null)}
       />
 
       <footer className="bg-slate-950 text-white py-12 border-t border-white/5 mt-20">

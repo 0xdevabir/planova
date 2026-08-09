@@ -4,15 +4,17 @@ import { DestinationResult } from "@/lib/types";
 import { VIBE_BY_ID } from "@/lib/data/vibes";
 import { formatCurrency } from "@/lib/utils/money";
 import FavoriteButton from "./FavoriteButton";
+import { FaRoute } from "react-icons/fa";
 
 interface DestinationCardProps {
   destination: DestinationResult;
   onSelect?: (destination: DestinationResult) => void;
+  onItinerary?: (destination: DestinationResult) => void;
   currency?: string;
   compact?: boolean;
 }
 
-export default function DestinationCard({ destination, onSelect, currency = "USD", compact = false }: DestinationCardProps) {
+export default function DestinationCard({ destination, onSelect, onItinerary, currency = "USD", compact = false }: DestinationCardProps) {
   const primaryVibe = destination.vibes?.[0] ? VIBE_BY_ID[destination.vibes[0]] : null;
   const headerGradient = primaryVibe?.gradient ?? "from-cyan-500 via-blue-500 to-indigo-600";
   const vibeEmojis = (destination.vibes || []).slice(0, 3).map((v) => VIBE_BY_ID[v]?.emoji).filter(Boolean);
@@ -197,8 +199,16 @@ export default function DestinationCard({ destination, onSelect, currency = "USD
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
-          <button className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift">
-            View Details
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onItinerary?.(destination);
+            }}
+            className="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift"
+          >
+            <FaRoute className="text-xs" />
+            Day-by-day itinerary
           </button>
         </div>
       </div>
