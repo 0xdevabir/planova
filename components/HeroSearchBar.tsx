@@ -16,6 +16,20 @@ import { CURRENCIES, formatCurrencyCompact } from "@/lib/utils/money";
 interface HeroSearchBarProps {
   onSearch: (data: SearchData) => void;
   loading?: boolean;
+  /** Pre-fill the destination input (used when navigating from a recommendation). */
+  initialDestination?: string;
+  /** Pre-fill the selected location so search can run without an autocomplete round-trip. */
+  initialCoordinates?: { latitude: number; longitude: number; placeId?: string };
+  /**
+   * Notify parent when the user picks a suggestion or edits the destination
+   * text. Used so the home page can sync URL state when it pre-fills the bar.
+   */
+  onDestinationChange?: (value: string) => void;
+  /**
+   * Auto-submit once the destination has been picked from suggestions, or
+   * immediately when coordinates are provided via `initialCoordinates`.
+   */
+  autoSubmitOnSelect?: boolean;
 }
 
 export interface SearchData {
@@ -54,8 +68,12 @@ function fmtMoney(amount: number, currency: string) {
 export default function HeroSearchBar({
   onSearch,
   loading,
+  initialDestination,
+  initialCoordinates,
+  onDestinationChange,
+  autoSubmitOnSelect,
 }: HeroSearchBarProps) {
-  const [destination, setDestination] = useState("");
+  const [destination, setDestination] = useState(initialDestination || "");
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [autocompleteLoading, setAutocompleteLoading] = useState(false);
@@ -116,6 +134,30 @@ export default function HeroSearchBar({
     return () => clearTimeout(timer);
   }, [destination, selectedLocation]);
 
+  // ----- Sync external changes (e.g. prefill from a recommendation click) -----
+  useEffect(() => {
+    if (!initialDestination) return;
+    if (selectedLocation && selectedLocation.name === initialDestination) return;
+
+    setDestination(initialDestination);
+    onDestinationChange?.(initialDestination);
+
+    if (initialCoordinates) {
+      setSelectedLocation({
+        placeId: initialCoordinates.placeId || "prefilled",
+        name: initialDestination,
+        latitude: initialCoordinates.latitude,
+        longitude: initialCoordinates.longitude,
+      });
+      if (autoSubmitOnSelect) {
+        setTimeout(() => handleSubmit(), 0);
+      }
+    }
+    // We intentionally only react when the prop value changes, not on every
+    // selectedLocation update (otherwise the user couldn't edit the field).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialDestination, initialCoordinates?.latitude, initialCoordinates?.longitude]);
+
   // ----- Click outside closes dropdowns -----
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -138,15 +180,22 @@ export default function HeroSearchBar({
     lng?: string,
   ) => {
     if (lat && lng) {
+      const cleanName = description.split(",")[0].trim();
       setSelectedLocation({
         placeId,
-        name: description.split(",")[0].trim(),
+        name: cleanName,
         latitude: parseFloat(lat),
         longitude: parseFloat(lng),
       });
-      setDestination(description.split(",")[0].trim());
+      setDestination(cleanName);
       setShowAutocomplete(false);
       setError(null);
+      onDestinationChange?.(cleanName);
+
+      if (autoSubmitOnSelect) {
+        // Defer so React state updates flush before the submit reads them.
+        setTimeout(() => handleSubmit(), 0);
+      }
     }
   };
 
@@ -279,6 +328,7 @@ export default function HeroSearchBar({
                   onChange={(e) => {
                     setDestination(e.target.value);
                     setSelectedLocation(null);
+                    onDestinationChange?.(e.target.value);
                   }}
                   onKeyDown={handleKeyDown}
                   aria-label="Destination"

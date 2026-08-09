@@ -155,6 +155,20 @@ export default function RecommendationsContent() {
       .filter((d): d is DestinationResult => Boolean(d));
   }, [compareIds, searchResults]);
 
+  // When a user clicks a destination card, send them back to the home page
+  // with the destination prefilled in the search bar.
+  const handleSelectDestination = (destination: DestinationResult) => {
+    const params = new URLSearchParams({
+      from: destination.name,
+      lat: destination.latitude.toString(),
+      lng: destination.longitude.toString(),
+    });
+    if (destination.placeId) {
+      params.set("placeId", destination.placeId);
+    }
+    router.push(`/?${params.toString()}`);
+  };
+
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll<HTMLElement>(".reveal-on-scroll"));
     if (!elements.length) return;
@@ -299,6 +313,7 @@ export default function RecommendationsContent() {
                       <DestinationCard
                         destination={destination}
                         currency={currency}
+                        onSelect={handleSelectDestination}
                         onItinerary={(d) => setItineraryTarget(d)}
                       />
                     </div>

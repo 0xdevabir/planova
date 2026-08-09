@@ -1,8 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import HeroSearchBar from "@/components/HeroSearchBar";
 import DestinationCard from "@/components/DestinationCard";
@@ -10,8 +10,37 @@ import ResultsMap from "@/components/ResultsMap";
 import { SearchResponse } from "@/lib/types";
 
 export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeInner />
+    </Suspense>
+  );
+}
+
+function HomeInner() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // When the user arrives from a recommendation click, the recommendations
+  // page appends ?from=<city>&lat=<lat>&lng=<lng>&placeId=<id> to this URL.
+  // We prefill the search bar and auto-trigger a fresh search.
+  const prefill = useMemo(() => {
+    const name = searchParams.get("from");
+    const lat = searchParams.get("lat");
+    const lng = searchParams.get("lng");
+    const placeId = searchParams.get("placeId");
+    if (!name || !lat || !lng) return null;
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) return null;
+    return {
+      name,
+      latitude,
+      longitude,
+      placeId: placeId || undefined,
+    };
+  }, [searchParams]);
 
   const handleSearch = async (formData: any) => {
     setLoading(true);
@@ -103,7 +132,21 @@ export default function Home() {
           </p>
 
           <div className="relative max-w-5xl mx-auto reveal-on-scroll" style={{ "--reveal-delay": "160ms" } as CSSProperties}>
-            <HeroSearchBar onSearch={handleSearch} loading={loading} />
+            <HeroSearchBar
+              onSearch={handleSearch}
+              loading={loading}
+              initialDestination={prefill?.name}
+              initialCoordinates={
+                prefill
+                  ? {
+                      latitude: prefill.latitude,
+                      longitude: prefill.longitude,
+                      placeId: prefill.placeId,
+                    }
+                  : undefined
+              }
+              autoSubmitOnSelect={Boolean(prefill)}
+            />
           </div>
         </div>
       </section>
