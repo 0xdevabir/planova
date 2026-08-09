@@ -11,6 +11,7 @@ export default function SupportPage() {
       <Navbar />
       <HeroSection
         theme="mint"
+        image
         eyebrow="Support"
         title={
           <>

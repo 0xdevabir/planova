@@ -50,6 +50,7 @@ export default function TestimonialsPage() {
       <Navbar />
       <HeroSection
         theme="sunset"
+        image
         eyebrow="Testimonials"
         title={
           <>

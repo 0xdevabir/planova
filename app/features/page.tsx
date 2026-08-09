@@ -56,6 +56,7 @@ export default function FeaturesPage() {
       <Navbar />
       <HeroSection
         theme="cyan"
+        image
         eyebrow="Features"
         title={
           <>

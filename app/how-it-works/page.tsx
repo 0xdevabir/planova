@@ -35,6 +35,7 @@ export default function HowItWorks() {
       <Navbar />
       <HeroSection
         theme="indigo"
+        image
         eyebrow="How it works"
         title={
           <>

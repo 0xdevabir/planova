@@ -24,6 +24,11 @@ interface HeroSectionProps {
    * Defaults to `home` for full-bleed, `aurora` for compact variants.
    */
   theme?: HeroTheme;
+  /**
+   * Use a photographic backdrop (matches the home page hero image) with a
+   * dark glassmorphic overlay. Theme still tints the orbs and color wash.
+   */
+  image?: boolean | string;
 }
 
 interface ThemeSpec {
@@ -159,10 +164,13 @@ export function HeroSection({
   action,
   variant = "home",
   theme,
+  image = false,
 }: HeroSectionProps) {
   const activeTheme: HeroTheme =
     theme ?? (variant === "home" ? "home" : "aurora");
   const spec = THEMES[activeTheme];
+  const imageSrc =
+    typeof image === "string" && image.length > 0 ? image : "/heroBg.jpg";
 
   // Reveal-on-scroll observer — runs locally so the marketing pages animate
   // without depending on app/page.tsx's setup.
@@ -197,14 +205,43 @@ export function HeroSection({
           : "pt-32 pb-20 sm:pt-40 sm:pb-24",
       ].join(" ")}
     >
-      {/* Base gradient */}
-      <div className={`absolute inset-0 -z-10 ${spec.base}`} />
+      {/* Base gradient (always present as a fallback) */}
+      <div className={`absolute inset-0 -z-20 ${spec.base}`} />
 
-      {/* Color wash veil */}
-      <div
-        className="absolute inset-0 -z-10 opacity-80"
-        style={{ backgroundImage: spec.veil }}
-      />
+      {/* Photographic backdrop — matches the home page hero image. */}
+      {image && (
+        <div
+          className="absolute inset-0 -z-10 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${imageSrc})`,
+          }}
+          aria-hidden
+        />
+      )}
+
+      {/* Dark glassmorphic overlay layered on top of the image. The first
+          div is a black wash for legibility; the second is a frosted
+          gradient that fades into the bottom edge so the content card
+          reads as a true glass surface. */}
+      {image && (
+        <>
+          <div className="absolute inset-0 -z-10 bg-black/55" />
+          <div className="absolute inset-0 -z-10 backdrop-blur-[2px]" />
+          <div
+            className="absolute inset-0 -z-10 opacity-70"
+            style={{ backgroundImage: spec.veil }}
+          />
+          <div className="absolute inset-x-0 bottom-0 h-40 -z-10 bg-gradient-to-b from-transparent via-slate-950/70 to-slate-950 pointer-events-none" />
+        </>
+      )}
+
+      {/* Color wash veil (used when no image is supplied) */}
+      {!image && (
+        <div
+          className="absolute inset-0 -z-10 opacity-80"
+          style={{ backgroundImage: spec.veil }}
+        />
+      )}
 
       {/* Subtle grid veil */}
       <div className="grid-veil" />

@@ -12,6 +12,7 @@ export default function AppInfoPage() {
       <Navbar />
       <HeroSection
         theme="violet"
+        image
         eyebrow="Get the app"
         title={
           <>
