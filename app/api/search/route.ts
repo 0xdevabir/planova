@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { searchDestinations } from "@/lib/services/searchService";
-import { SearchParams } from "@/lib/types";
+import { SearchParams, TripVibe, TRIP_VIBES } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,6 +26,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const rawVibes: string[] = Array.isArray(body.vibes)
+      ? body.vibes
+      : typeof body.vibes === "string"
+      ? body.vibes.split(",").map((v: string) => v.trim()).filter(Boolean)
+      : [];
+    const vibes: TripVibe[] = rawVibes.filter((v): v is TripVibe => TRIP_VIBES.includes(v as TripVibe));
+
     const searchParams: SearchParams = {
       destination: body.destination || "Selected Location",
       latitude: parseFloat(body.latitude),
@@ -38,6 +45,7 @@ export async function POST(request: NextRequest) {
       endDate: new Date(body.endDate),
       travelers: body.travelers ? parseInt(body.travelers) : 1,
       tripType: body.tripType,
+      vibes,
     };
 
     const results = await searchDestinations(searchParams);

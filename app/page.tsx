@@ -28,20 +28,24 @@ export default function Home() {
       }
 
       const results = await response.json();
-      
+
       // Navigate to recommendations page with search data
       const searchParams = new URLSearchParams({
         destination: formData.destination,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
+        latitude: formData.latitude.toString(),
+        longitude: formData.longitude.toString(),
         startDate: formData.startDate,
         endDate: formData.endDate,
-        budgetMin: formData.budgetMin,
-        budgetMax: formData.budgetMax,
-        travelers: formData.travelers,
+        budgetMin: formData.budgetMin.toString(),
+        budgetMax: formData.budgetMax.toString(),
+        travelers: formData.travelers.toString(),
         currency: formData.currency,
       });
-      
+
+      if (formData.vibes && Array.isArray(formData.vibes) && formData.vibes.length > 0) {
+        searchParams.set("vibes", formData.vibes.join(","));
+      }
+
       router.push(`/recommendations?${searchParams.toString()}`);
     } catch (error) {
       console.error("Search error:", error);

@@ -17,6 +17,7 @@ export default function RecommendationsContent() {
     const fetchResults = async () => {
       setLoading(true);
       try {
+        const vibesParam = searchParams.get("vibes") || "";
         const formData = {
           destination: searchParams.get("destination"),
           latitude: parseFloat(searchParams.get("latitude") || "0"),
@@ -27,6 +28,7 @@ export default function RecommendationsContent() {
           budgetMax: parseFloat(searchParams.get("budgetMax") || "0"),
           travelers: parseInt(searchParams.get("travelers") || "1"),
           currency: searchParams.get("currency") || "USD",
+          vibes: vibesParam ? vibesParam.split(",").filter(Boolean) : [],
         };
 
         const response = await fetch("/api/search", {

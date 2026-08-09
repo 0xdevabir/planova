@@ -3,7 +3,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FaCalendarAlt, FaDollarSign, FaUser } from "react-icons/fa";
+import { FaCalendarAlt, FaDollarSign, FaUser, FaRegSmile } from "react-icons/fa";
+import VibePicker from "@/components/VibePicker";
+import type { TripVibe } from "@/lib/types";
 
 interface HeroSearchBarProps {
   onSearch: (data: SearchData) => void;
@@ -20,6 +22,7 @@ interface SearchData {
   budgetMax: number;
   travelers: number;
   currency: string;
+  vibes: TripVibe[];
 }
 
 interface PlacePrediction {
@@ -52,11 +55,14 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
   const [budgetMin, setBudgetMin] = useState(500);
   const [budgetMax, setBudgetMax] = useState(5000);
   const [travelers, setTravelers] = useState(1);
+  const [vibes, setVibes] = useState<TripVibe[]>([]);
 
   const dateRef = useRef<HTMLDivElement>(null);
   const budgetRef = useRef<HTMLDivElement>(null);
   const guestsRef = useRef<HTMLDivElement>(null);
+  const vibeRef = useRef<HTMLDivElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
+  const [showVibePicker, setShowVibePicker] = useState(false);
 
   // Debounced autocomplete search
   useEffect(() => {
@@ -95,6 +101,9 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
       }
       if (guestsRef.current && !guestsRef.current.contains(e.target as Node)) {
         setShowGuestsPicker(false);
+      }
+      if (vibeRef.current && !vibeRef.current.contains(e.target as Node)) {
+        setShowVibePicker(false);
       }
       if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
         setShowAutocomplete(false);
@@ -162,6 +171,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
       budgetMax,
       travelers,
       currency: "USD",
+      vibes,
     });
   };
 
@@ -239,6 +249,33 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
             )}
           </div>
 
+          {/* Vibe Picker */}
+          <div className="relative" ref={vibeRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setShowVibePicker(!showVibePicker);
+                setShowDatePicker(false);
+                setShowBudgetPicker(false);
+                setShowGuestsPicker(false);
+              }}
+              aria-label={`Pick vibes (${vibes.length} selected)`}
+              className={`h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full transition-colors ${
+                vibes.length > 0
+                  ? "bg-gradient-to-br from-cyan-400 to-blue-500 border border-cyan-500 text-white shadow-md"
+                  : "bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40"
+              }`}
+            >
+              <FaRegSmile className="w-5 h-5 shrink-0" />
+            </button>
+
+            {showVibePicker && (
+              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-80">
+                <VibePicker selected={vibes} onChange={setVibes} />
+              </div>
+            )}
+          </div>
+
           {/* Date Picker */}
           <div className="relative" ref={dateRef}>
             <button
@@ -247,6 +284,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setShowDatePicker(!showDatePicker);
                 setShowBudgetPicker(false);
                 setShowGuestsPicker(false);
+                setShowVibePicker(false);
               }}
               aria-label={`Change dates (${formatDateRange()})`}
               className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
@@ -288,6 +326,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setShowBudgetPicker(!showBudgetPicker);
                 setShowDatePicker(false);
                 setShowGuestsPicker(false);
+                setShowVibePicker(false);
               }}
               aria-label={`Adjust budget (${budgetMin.toLocaleString()} to ${budgetMax.toLocaleString()})`}
               className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
@@ -341,6 +380,7 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                 setShowGuestsPicker(!showGuestsPicker);
                 setShowDatePicker(false);
                 setShowBudgetPicker(false);
+                setShowVibePicker(false);
               }}
               aria-label={`Guests (${travelers})`}
               className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
