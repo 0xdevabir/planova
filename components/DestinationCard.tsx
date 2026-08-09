@@ -1,28 +1,53 @@
 // components/DestinationCard.tsx
 
 import { DestinationResult } from "@/lib/types";
+import { VIBE_BY_ID } from "@/lib/data/vibes";
+import { formatCurrency } from "@/lib/utils/money";
+import FavoriteButton from "./FavoriteButton";
 
 interface DestinationCardProps {
   destination: DestinationResult;
+  onSelect?: (destination: DestinationResult) => void;
+  currency?: string;
+  compact?: boolean;
 }
 
-export default function DestinationCard({ destination }: DestinationCardProps) {
+export default function DestinationCard({ destination, onSelect, currency = "USD", compact = false }: DestinationCardProps) {
+  const primaryVibe = destination.vibes?.[0] ? VIBE_BY_ID[destination.vibes[0]] : null;
+  const headerGradient = primaryVibe?.gradient ?? "from-cyan-500 via-blue-500 to-indigo-600";
+  const vibeEmojis = (destination.vibes || []).slice(0, 3).map((v) => VIBE_BY_ID[v]?.emoji).filter(Boolean);
+
   return (
-    <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 border border-gray-100 group hover-lift">
+    <div
+      onClick={() => onSelect?.(destination)}
+      className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 border border-gray-100 group hover-lift relative"
+    >
       {/* Header with gradient */}
-      <div className="bg-linear-to-br from-cyan-500 via-blue-500 to-indigo-600 p-5 text-white relative overflow-hidden">
+      <div className={`bg-gradient-to-br ${headerGradient} p-5 text-white relative overflow-hidden`}>
         {/* Decorative circles */}
         <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full" />
         <div className="absolute -right-2 top-8 w-12 h-12 bg-white/10 rounded-full" />
-        
-        <div className="relative flex justify-between items-start">
-          <div>
-            <h3 className="text-2xl font-bold">{destination.name}</h3>
-            <p className="text-cyan-100 text-sm mt-1">{destination.address}</p>
+
+        <div className="relative flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              {vibeEmojis.length > 0 && (
+                <div className="flex items-center gap-1 text-xl">
+                  {vibeEmojis.map((emoji, i) => (
+                    <span key={i} aria-hidden>{emoji}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <h3 className="text-2xl font-bold truncate">{destination.name}</h3>
+            <p className="text-white/80 text-sm mt-1 truncate">{destination.address}</p>
           </div>
-          <div className="text-right">
-            <div className="text-xs text-cyan-100 uppercase tracking-wider">Value Score</div>
-            <div className="text-3xl font-bold">{Math.round(destination.valueScore)}</div>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <FavoriteButton destination={destination} size="sm" tone="glass" />
+            <div className="text-right">
+              <div className="text-[10px] text-white/80 uppercase tracking-wider font-semibold">Value</div>
+              <div className="text-3xl font-bold">{Math.round(destination.valueScore)}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -57,7 +82,7 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
         )}
 
         {/* Cost Breakdown */}
-        <div className="bg-linear-to-br from-slate-50 to-gray-50 rounded-xl p-4 border border-gray-100">
+        <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl p-4 border border-gray-100">
           <h4 className="font-semibold text-gray-900 mb-3 text-sm uppercase tracking-wider">Cost Breakdown</h4>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
@@ -65,33 +90,33 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
                 <span className="w-2 h-2 bg-cyan-400 rounded-full" />
                 Flights
               </span>
-              <span className="font-medium text-gray-900">${destination.costBreakdown.flights.toFixed(0)}</span>
+              <span className="font-medium text-gray-900">{formatCurrency(destination.costBreakdown.flights, currency)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-500 flex items-center gap-2">
                 <span className="w-2 h-2 bg-blue-400 rounded-full" />
                 Accommodation
               </span>
-              <span className="font-medium text-gray-900">${destination.costBreakdown.accommodation.toFixed(0)}</span>
+              <span className="font-medium text-gray-900">{formatCurrency(destination.costBreakdown.accommodation, currency)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-500 flex items-center gap-2">
                 <span className="w-2 h-2 bg-emerald-400 rounded-full" />
                 Food
               </span>
-              <span className="font-medium text-gray-900">${destination.costBreakdown.food.toFixed(0)}</span>
+              <span className="font-medium text-gray-900">{formatCurrency(destination.costBreakdown.food, currency)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-500 flex items-center gap-2">
                 <span className="w-2 h-2 bg-violet-400 rounded-full" />
                 Activities
               </span>
-              <span className="font-medium text-gray-900">${destination.costBreakdown.activities.toFixed(0)}</span>
+              <span className="font-medium text-gray-900">{formatCurrency(destination.costBreakdown.activities, currency)}</span>
             </div>
             <div className="border-t border-gray-200 pt-3 mt-3 flex justify-between items-center">
               <span className="font-bold text-gray-900">Total</span>
-              <span className="text-xl font-bold bg-linear-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
-                ${destination.totalEstimatedCost.toFixed(0)}
+              <span className="text-xl font-bold gradient-text">
+                {formatCurrency(destination.totalEstimatedCost, currency)}
               </span>
             </div>
           </div>
@@ -117,9 +142,9 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
 
         {/* Weather */}
         {destination.weather && (
-          <div className="bg-linear-to-br from-sky-50 to-cyan-50 p-4 rounded-xl border border-sky-100">
+          <div className="bg-gradient-to-br from-sky-50 to-cyan-50 p-4 rounded-xl border border-sky-100">
             <h4 className="font-semibold text-gray-900 mb-2 text-sm flex items-center gap-2">
-              <span>☁️</span> Weather Forecast
+              <span aria-hidden>{destination.weather.emoji || "☁️"}</span> Weather Snapshot
             </h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex justify-between">
@@ -139,6 +164,20 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
                 <span className="font-medium text-gray-900">{destination.weather.windSpeed} km/h</span>
               </div>
             </div>
+            {typeof destination.weather.travelScore === "number" && (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
+                  <span>Travel score</span>
+                  <span className="font-semibold text-slate-700">{destination.weather.travelScore}/100</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-sky-100 overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                    style={{ width: `${destination.weather.travelScore}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -148,7 +187,7 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
             <span className="text-sm text-gray-500">Safety</span>
             <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-linear-to-r from-emerald-400 to-emerald-500 h-2 rounded-full transition-all"
+                className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-2 rounded-full transition-all"
                 style={{ width: `${(destination.safetyRating / 10) * 100}%` }}
               />
             </div>
@@ -158,11 +197,8 @@ export default function DestinationCard({ destination }: DestinationCardProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-3 pt-2">
-          <button className="flex-1 bg-linear-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift">
+          <button className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift">
             View Details
-          </button>
-          <button className="flex-1 border-2 border-gray-200 text-gray-700 hover:border-cyan-500 hover:text-cyan-600 font-semibold py-2.5 rounded-xl transition-all hover-lift">
-            Save
           </button>
         </div>
       </div>
