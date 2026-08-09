@@ -1,18 +1,24 @@
 // components/HeroSearchBar.tsx
-
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { FaCalendarAlt, FaDollarSign, FaUser, FaRegSmile } from "react-icons/fa";
+import { useState, useRef, useEffect, useCallback } from "react";
+import {
+  FaCalendarAlt,
+  FaDollarSign,
+  FaUser,
+  FaRegSmile,
+  FaSearch,
+} from "react-icons/fa";
 import VibePicker from "@/components/VibePicker";
 import type { TripVibe } from "@/lib/types";
+import { CURRENCIES, formatCurrencyCompact } from "@/lib/utils/money";
 
 interface HeroSearchBarProps {
   onSearch: (data: SearchData) => void;
   loading?: boolean;
 }
 
-interface SearchData {
+export interface SearchData {
   destination: string;
   latitude: number;
   longitude: number;
@@ -28,14 +34,31 @@ interface SearchData {
 interface PlacePrediction {
   place_id: string;
   description: string;
-  lat?: string; // present for OSM fallback
-  lng?: string; // present for OSM fallback
+  lat?: string;
+  lng?: string;
 }
 
-export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps) {
+const today = () => new Date().toISOString().split("T")[0];
+const inDays = (n: number) =>
+  new Date(Date.now() + n * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+function fmtDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function fmtMoney(amount: number, currency: string) {
+  return formatCurrencyCompact(amount, currency);
+}
+
+export default function HeroSearchBar({
+  onSearch,
+  loading,
+}: HeroSearchBarProps) {
   const [destination, setDestination] = useState("");
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
+  const [autocompleteLoading, setAutocompleteLoading] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{
     placeId: string;
     name: string;
@@ -45,16 +68,15 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showBudgetPicker, setShowBudgetPicker] = useState(false);
   const [showGuestsPicker, setShowGuestsPicker] = useState(false);
+  const [showVibePicker, setShowVibePicker] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [startDate, setStartDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [endDate, setEndDate] = useState(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-  );
-  const [budgetMin, setBudgetMin] = useState(500);
+  const [startDate, setStartDate] = useState(today());
+  const [endDate, setEndDate] = useState(inDays(7));
+  const [budgetMin, setBudgetMin] = useState(800);
   const [budgetMax, setBudgetMax] = useState(5000);
-  const [travelers, setTravelers] = useState(1);
+  const [travelers, setTravelers] = useState(2);
+  const [currency, setCurrency] = useState("USD");
   const [vibes, setVibes] = useState<TripVibe[]>([]);
 
   const dateRef = useRef<HTMLDivElement>(null);
@@ -62,84 +84,99 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
   const guestsRef = useRef<HTMLDivElement>(null);
   const vibeRef = useRef<HTMLDivElement>(null);
   const autocompleteRef = useRef<HTMLDivElement>(null);
-  const [showVibePicker, setShowVibePicker] = useState(false);
 
-  // Debounced autocomplete search
+  // ----- Autocomplete (debounced) -----
   useEffect(() => {
-    const fetchPredictions = async () => {
-      if (destination.length < 2) {
-        setPredictions([]);
-        setShowAutocomplete(false);
-        return;
-      }
+    if (selectedLocation && destination === selectedLocation.name) {
+      return; // don't refetch when the user just selected a suggestion
+    }
+    if (destination.trim().length < 1) {
+      setPredictions([]);
+      setShowAutocomplete(false);
+      return;
+    }
 
+    setAutocompleteLoading(true);
+    const timer = setTimeout(async () => {
       try {
-        const response = await fetch(
-          `/api/places/autocomplete?input=${encodeURIComponent(destination)}`
+        const res = await fetch(
+          `/api/places/autocomplete?input=${encodeURIComponent(destination)}`,
         );
-        const data = await response.json();
+        const data = await res.json();
         setPredictions(data.predictions || []);
         setShowAutocomplete(true);
-      } catch (error) {
-        console.error("Autocomplete error:", error);
+      } catch (err) {
+        console.error("Autocomplete error:", err);
         setPredictions([]);
+      } finally {
+        setAutocompleteLoading(false);
       }
-    };
+    }, 250);
 
-    const timer = setTimeout(fetchPredictions, 300);
     return () => clearTimeout(timer);
-  }, [destination]);
+  }, [destination, selectedLocation]);
 
-  // Close dropdowns on outside click
+  // ----- Click outside closes dropdowns -----
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dateRef.current && !dateRef.current.contains(e.target as Node)) {
-        setShowDatePicker(false);
-      }
-      if (budgetRef.current && !budgetRef.current.contains(e.target as Node)) {
-        setShowBudgetPicker(false);
-      }
-      if (guestsRef.current && !guestsRef.current.contains(e.target as Node)) {
-        setShowGuestsPicker(false);
-      }
-      if (vibeRef.current && !vibeRef.current.contains(e.target as Node)) {
-        setShowVibePicker(false);
-      }
-      if (autocompleteRef.current && !autocompleteRef.current.contains(e.target as Node)) {
-        setShowAutocomplete(false);
-      }
+    const onClick = (e: MouseEvent) => {
+      const node = e.target as Node;
+      if (dateRef.current && !dateRef.current.contains(node)) setShowDatePicker(false);
+      if (budgetRef.current && !budgetRef.current.contains(node)) setShowBudgetPicker(false);
+      if (guestsRef.current && !guestsRef.current.contains(node)) setShowGuestsPicker(false);
+      if (vibeRef.current && !vibeRef.current.contains(node)) setShowVibePicker(false);
+      if (autocompleteRef.current && !autocompleteRef.current.contains(node)) setShowAutocomplete(false);
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const handlePlaceSelect = async (placeId: string, description: string, lat?: string, lng?: string) => {
-    try {
-      if (lat && lng) {
-        setSelectedLocation({
-          placeId,
-          name: description,
-          latitude: parseFloat(lat),
-          longitude: parseFloat(lng),
-        });
-        setDestination(description);
-        setShowAutocomplete(false);
-        return;
-      }
-
-      const response = await fetch(`/api/places/details?placeId=${placeId}`);
-      const data = await response.json();
-      if (data.latitude && data.longitude) {
-        setSelectedLocation({ placeId, name: data.name, latitude: data.latitude, longitude: data.longitude });
-        setDestination(description);
-        setShowAutocomplete(false);
-      }
-    } catch (error) {
-      console.error("Place details error:", error);
+  // ----- Pick a suggestion -----
+  const handlePlaceSelect = (
+    placeId: string,
+    description: string,
+    lat?: string,
+    lng?: string,
+  ) => {
+    if (lat && lng) {
+      setSelectedLocation({
+        placeId,
+        name: description.split(",")[0].trim(),
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
+      });
+      setDestination(description.split(",")[0].trim());
+      setShowAutocomplete(false);
+      setError(null);
     }
   };
 
-  const handleSubmit = async () => {
+  const closeAll = useCallback(() => {
+    setShowDatePicker(false);
+    setShowBudgetPicker(false);
+    setShowGuestsPicker(false);
+    setShowVibePicker(false);
+    setShowAutocomplete(false);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    setError(null);
+    closeAll();
+
+    if (!destination.trim()) {
+      setError("Tell us where you want to go.");
+      return;
+    }
+
+    if (new Date(endDate) <= new Date(startDate)) {
+      setError("End date must be after start date.");
+      return;
+    }
+
+    if (budgetMin > budgetMax) {
+      setError("Budget minimum can't exceed maximum.");
+      return;
+    }
+
     let loc = selectedLocation;
     if (!loc) {
       try {
@@ -147,17 +184,19 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
         const data = await res.json();
         if (res.ok && data.latitude && data.longitude) {
           loc = {
-            placeId: "manual",
-            name: data.name || destination,
+            placeId: data.placeId || "geocoded",
+            name: (data.name || destination).split(",")[0].trim(),
             latitude: data.latitude,
             longitude: data.longitude,
           };
         }
-      } catch {}
+      } catch (err) {
+        console.error("Geocode error:", err);
+      }
     }
 
     if (!loc) {
-      alert("Couldn't locate that place. Please try a different name.");
+      setError(`Couldn't locate "${destination}". Try a more specific city name.`);
       return;
     }
 
@@ -170,67 +209,106 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
       budgetMin,
       budgetMax,
       travelers,
-      currency: "USD",
+      currency,
       vibes,
     });
-  };
+  }, [
+    destination,
+    endDate,
+    startDate,
+    budgetMin,
+    budgetMax,
+    selectedLocation,
+    travelers,
+    currency,
+    vibes,
+    onSearch,
+    closeAll,
+  ]);
 
-  const formatDateRange = () => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" };
-    return `${start.toLocaleDateString("en-US", options)} - ${end.toLocaleDateString("en-US", options)}`;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSubmit();
+    }
   };
 
   return (
-    <div className="relative w-full max-w-5xl mx-auto px-4">
-      <div className="absolute -inset-4 bg-white/12 blur-3xl opacity-80 pointer-events-none" />
-      <div className="relative rounded-full border border-white/25 bg-white/20 backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.35)]">
-        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3">
-          {/* Location Input */}
-          <div className="relative flex items-center gap-3 px-4 py-3 bg-white/70 rounded-full flex-1 min-w-0" ref={autocompleteRef}>
-            <svg
-              className="w-5 h-5 text-gray-500 shrink-0"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Where you want to go?"
-              value={destination}
-              onChange={(e) => {
-                setDestination(e.target.value);
-                setSelectedLocation(null);
-              }}
-              className="bg-transparent text-gray-800 placeholder-gray-500 text-sm sm:text-base w-full focus:outline-none"
-            />
+    <div className="relative w-full max-w-5xl mx-auto px-2 sm:px-4">
+      {/* Glow halo */}
+      <div className="absolute -inset-6 bg-cyan-400/20 blur-3xl rounded-full opacity-70 pointer-events-none" />
 
-            {/* Autocomplete Dropdown */}
-            {showAutocomplete && predictions.length > 0 && (
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        className="relative rounded-3xl border border-white/30 bg-white/15 backdrop-blur-2xl shadow-[0_25px_80px_rgba(0,0,0,0.45)]"
+      >
+        {/* Top row: Location + Search button */}
+        <div className="flex items-stretch gap-2 sm:gap-3 p-3 sm:p-4">
+          <div ref={autocompleteRef} className="relative flex-1 min-w-0">
+            <div className="flex items-center gap-3 px-4 py-3 bg-white/85 rounded-2xl border border-white/60 focus-within:ring-2 focus-within:ring-cyan-400 transition-all">
+              <svg
+                className="w-5 h-5 text-gray-500 shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
+                  Destination
+                </span>
+                <input
+                  type="text"
+                  placeholder="City, region, or country"
+                  value={destination}
+                  onChange={(e) => {
+                    setDestination(e.target.value);
+                    setSelectedLocation(null);
+                  }}
+                  onKeyDown={handleKeyDown}
+                  aria-label="Destination"
+                  className="bg-transparent text-gray-900 placeholder-gray-400 text-sm sm:text-base w-full focus:outline-none font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Autocomplete dropdown */}
+            {showAutocomplete && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 max-h-80 overflow-y-auto z-50">
+                {autocompleteLoading && predictions.length === 0 && (
+                  <div className="px-5 py-3 text-sm text-gray-500">Searching…</div>
+                )}
                 {predictions.map((prediction) => (
                   <button
                     key={prediction.place_id}
                     type="button"
-                    onClick={() => handlePlaceSelect(prediction.place_id, prediction.description, prediction.lat, prediction.lng)}
+                    onClick={() =>
+                      handlePlaceSelect(
+                        prediction.place_id,
+                        prediction.description,
+                        prediction.lat,
+                        prediction.lng,
+                      )
+                    }
                     className="w-full px-5 py-3 text-left hover:bg-cyan-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0"
                   >
                     <svg
-                      className="w-4 h-4 text-gray-400 shrink-0"
+                      className="w-4 h-4 text-cyan-600 shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -242,128 +320,180 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
                         d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                       />
                     </svg>
-                    <span className="text-sm text-gray-700">{prediction.description}</span>
+                    <span className="text-sm text-gray-800 font-medium">
+                      {prediction.description}
+                    </span>
                   </button>
                 ))}
+                {!autocompleteLoading && predictions.length === 0 && (
+                  <div className="px-5 py-3 text-sm text-gray-500">
+                    No matches. Try a different city name.
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Vibe Picker */}
-          <div className="relative" ref={vibeRef}>
+          {/* Search button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-5 sm:px-7 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-60 shadow-[0_8px_24px_rgba(6,182,212,0.35)] whitespace-nowrap"
+          >
+            <FaSearch className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">{loading ? "Searching…" : "Search"}</span>
+          </button>
+        </div>
+
+        {/* Bottom row: filter chips */}
+        <div className="flex flex-wrap items-stretch gap-2 px-3 pb-3 sm:px-4 sm:pb-4">
+          {/* Dates */}
+          <div className="relative flex-1 min-w-[180px]" ref={dateRef}>
             <button
               type="button"
               onClick={() => {
-                setShowVibePicker(!showVibePicker);
-                setShowDatePicker(false);
-                setShowBudgetPicker(false);
-                setShowGuestsPicker(false);
-              }}
-              aria-label={`Pick vibes (${vibes.length} selected)`}
-              className={`h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full transition-colors ${
-                vibes.length > 0
-                  ? "bg-gradient-to-br from-cyan-400 to-blue-500 border border-cyan-500 text-white shadow-md"
-                  : "bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40"
-              }`}
-            >
-              <FaRegSmile className="w-5 h-5 shrink-0" />
-            </button>
-
-            {showVibePicker && (
-              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-80">
-                <VibePicker selected={vibes} onChange={setVibes} />
-              </div>
-            )}
-          </div>
-
-          {/* Date Picker */}
-          <div className="relative" ref={dateRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setShowDatePicker(!showDatePicker);
+                setShowDatePicker((v) => !v);
                 setShowBudgetPicker(false);
                 setShowGuestsPicker(false);
                 setShowVibePicker(false);
               }}
-              aria-label={`Change dates (${formatDateRange()})`}
-              className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/85 hover:bg-white rounded-2xl border border-white/60 text-left text-gray-900 transition-all"
             >
-              <FaCalendarAlt className="w-5 h-5 shrink-0" />
+              <FaCalendarAlt className="w-4 h-4 text-cyan-600 shrink-0" />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
+                  Dates
+                </span>
+                <span className="text-sm font-semibold truncate">
+                  {fmtDate(startDate)} – {fmtDate(endDate)}
+                </span>
+              </div>
             </button>
-
             {showDatePicker && (
-              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-72">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-2">Start Date</label>
+              <div className="absolute top-full left-0 mt-3 bg-white rounded-2xl shadow-2xl p-4 z-50 w-72">
+                <div className="space-y-3">
+                  <label className="block">
+                    <span className="block text-xs font-medium text-gray-600 mb-1">
+                      Start date
+                    </span>
                     <input
                       type="date"
                       value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      min={today()}
+                      onChange={(e) => {
+                        setStartDate(e.target.value);
+                        if (e.target.value >= endDate) {
+                          const next = new Date(e.target.value);
+                          next.setDate(next.getDate() + 1);
+                          setEndDate(next.toISOString().split("T")[0]);
+                        }
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-2">End Date</label>
+                  </label>
+                  <label className="block">
+                    <span className="block text-xs font-medium text-gray-600 mb-1">
+                      End date
+                    </span>
                     <input
                       type="date"
                       value={endDate}
+                      min={startDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                     />
-                  </div>
+                  </label>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Budget Picker */}
-          <div className="relative" ref={budgetRef}>
+          {/* Budget */}
+          <div className="relative flex-1 min-w-[180px]" ref={budgetRef}>
             <button
               type="button"
               onClick={() => {
-                setShowBudgetPicker(!showBudgetPicker);
+                setShowBudgetPicker((v) => !v);
                 setShowDatePicker(false);
                 setShowGuestsPicker(false);
                 setShowVibePicker(false);
               }}
-              aria-label={`Adjust budget (${budgetMin.toLocaleString()} to ${budgetMax.toLocaleString()})`}
-              className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/85 hover:bg-white rounded-2xl border border-white/60 text-left text-gray-900 transition-all"
             >
-              <FaDollarSign className="w-5 h-5 shrink-0" />
+              <FaDollarSign className="w-4 h-4 text-cyan-600 shrink-0" />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
+                  Budget ({currency})
+                </span>
+                <span className="text-sm font-semibold truncate">
+                  {fmtMoney(budgetMin, currency)} – {fmtMoney(budgetMax, currency)}
+                </span>
+              </div>
             </button>
-
             {showBudgetPicker && (
-              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-80">
-                <div className="space-y-5">
+              <div className="absolute top-full left-0 right-0 sm:right-auto mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-80">
+                <div className="space-y-4">
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs font-medium text-gray-600">Min Budget</label>
-                      <span className="text-sm font-semibold text-gray-900">${budgetMin.toLocaleString()}</span>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Currency
+                    </label>
+                    <select
+                      value={currency}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setCurrency(next);
+                        // Reset default budget range when currency changes
+                        setBudgetMin(800);
+                        setBudgetMax(5000);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                    >
+                      {CURRENCIES.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.symbol} · {c.code} — {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-medium text-gray-600">Min</label>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {fmtMoney(budgetMin, currency)}
+                      </span>
                     </div>
                     <input
                       type="range"
                       min="100"
-                      max="10000"
-                      step="100"
+                      max="20000"
+                      step="50"
                       value={budgetMin}
-                      onChange={(e) => setBudgetMin(Number(e.target.value))}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setBudgetMin(v);
+                        if (v > budgetMax) setBudgetMax(v + 200);
+                      }}
                       className="w-full accent-cyan-500"
                     />
                   </div>
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <label className="text-xs font-medium text-gray-600">Max Budget</label>
-                      <span className="text-sm font-semibold text-gray-900">${budgetMax.toLocaleString()}</span>
+                    <div className="flex justify-between items-center mb-1">
+                      <label className="text-xs font-medium text-gray-600">Max</label>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {fmtMoney(budgetMax, currency)}
+                      </span>
                     </div>
                     <input
                       type="range"
                       min="500"
-                      max="20000"
+                      max="50000"
                       step="100"
                       value={budgetMax}
-                      onChange={(e) => setBudgetMax(Number(e.target.value))}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        setBudgetMax(v);
+                        if (v < budgetMin) setBudgetMin(Math.max(100, v - 200));
+                      }}
                       className="w-full accent-cyan-500"
                     />
                   </div>
@@ -372,39 +502,49 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
             )}
           </div>
 
-          {/* Guests Picker */}
-          <div className="relative" ref={guestsRef}>
+          {/* Travelers */}
+          <div className="relative flex-1 min-w-[140px]" ref={guestsRef}>
             <button
               type="button"
               onClick={() => {
-                setShowGuestsPicker(!showGuestsPicker);
+                setShowGuestsPicker((v) => !v);
                 setShowDatePicker(false);
                 setShowBudgetPicker(false);
                 setShowVibePicker(false);
               }}
-              aria-label={`Guests (${travelers})`}
-              className="h-12 w-12 sm:h-14 sm:w-14 inline-flex items-center justify-center rounded-full bg-white/30 border border-white/25 text-gray-700 hover:bg-white/50 hover:border-white/40 transition-colors"
+              className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/85 hover:bg-white rounded-2xl border border-white/60 text-left text-gray-900 transition-all"
             >
-              <FaUser className="w-5 h-5 shrink-0" />
+              <FaUser className="w-4 h-4 text-cyan-600 shrink-0" />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
+                  Travelers
+                </span>
+                <span className="text-sm font-semibold truncate">
+                  {travelers} {travelers === 1 ? "person" : "people"}
+                </span>
+              </div>
             </button>
-
             {showGuestsPicker && (
-              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-5 z-50 w-64">
+              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-4 z-50 w-56">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">Travelers</span>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
                       onClick={() => setTravelers(Math.max(1, travelers - 1))}
-                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-cyan-500 hover:text-cyan-500 transition-colors font-semibold"
+                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-700 hover:border-cyan-500 hover:text-cyan-600 transition-colors font-bold"
+                      aria-label="Decrease travelers"
                     >
                       −
                     </button>
-                    <span className="text-lg font-semibold text-gray-900 w-8 text-center">{travelers}</span>
+                    <span className="text-lg font-bold text-gray-900 w-8 text-center">
+                      {travelers}
+                    </span>
                     <button
                       type="button"
                       onClick={() => setTravelers(Math.min(20, travelers + 1))}
-                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-600 hover:border-cyan-500 hover:text-cyan-500 transition-colors font-semibold"
+                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-700 hover:border-cyan-500 hover:text-cyan-600 transition-colors font-bold"
+                      aria-label="Increase travelers"
                     >
                       +
                     </button>
@@ -414,32 +554,57 @@ export default function HeroSearchBar({ onSearch, loading }: HeroSearchBarProps)
             )}
           </div>
 
-          {/* Search Button */}
-          <div className="p-1.5">
+          {/* Vibes */}
+          <div className="relative flex-1 min-w-[180px]" ref={vibeRef}>
             <button
               type="button"
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-linear-to-r from-[#212a21] via-[#151c15] to-[#151d15]  text-white px-6 sm:px-7 py-3 rounded-full font-semibold text-sm transition-all disabled:opacity-50 shadow-[0_6px_10px_rgb(21,29,21)] hover:shadow-[0_8px_16px_rgb(21,29,21)] whitespace-nowrap"
+              onClick={() => {
+                setShowVibePicker((v) => !v);
+                setShowDatePicker(false);
+                setShowBudgetPicker(false);
+                setShowGuestsPicker(false);
+              }}
+              className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-left transition-all ${
+                vibes.length > 0
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-cyan-500 text-white shadow-md"
+                  : "bg-white/85 hover:bg-white border-white/60 text-gray-900"
+              }`}
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <span>{loading ? "Searching..." : "Search"}</span>
+              <FaRegSmile className={`w-4 h-4 shrink-0 ${vibes.length > 0 ? "text-white" : "text-cyan-600"}`} />
+              <div className="flex flex-col flex-1 min-w-0">
+                <span
+                  className={`text-[10px] uppercase tracking-wider font-bold ${
+                    vibes.length > 0 ? "text-white/80" : "text-gray-500"
+                  }`}
+                >
+                  Vibes
+                </span>
+                <span className="text-sm font-semibold truncate">
+                  {vibes.length === 0
+                    ? "Any mood"
+                    : vibes.length === 1
+                    ? vibes[0]
+                    : `${vibes.length} selected`}
+                </span>
+              </div>
             </button>
+            {showVibePicker && (
+              <div className="absolute top-full right-0 mt-3 bg-white rounded-2xl shadow-2xl p-4 z-50 w-80">
+                <VibePicker selected={vibes} onChange={setVibes} />
+              </div>
+            )}
           </div>
         </div>
-      </div>
+
+        {/* Error message */}
+        {error && (
+          <div className="px-4 pb-3 -mt-1">
+            <p className="text-sm font-medium text-rose-100 bg-rose-500/90 border border-rose-300 px-3 py-2 rounded-xl shadow-sm">
+              {error}
+            </p>
+          </div>
+        )}
+      </form>
     </div>
   );
 }

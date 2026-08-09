@@ -39,7 +39,7 @@ export default function Home() {
         budgetMin: formData.budgetMin.toString(),
         budgetMax: formData.budgetMax.toString(),
         travelers: formData.travelers.toString(),
-        currency: formData.currency,
+        currency: formData.currency || "USD",
       });
 
       if (formData.vibes && Array.isArray(formData.vibes) && formData.vibes.length > 0) {
