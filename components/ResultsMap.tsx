@@ -7,21 +7,22 @@ import { DestinationResult } from "@/lib/types";
 
 interface ResultsMapProps {
   destinations: DestinationResult[];
+  currency?: string;
 }
 
 // Dynamically import the map component to avoid SSR issues
 const DynamicMap = dynamic(
   () => import("./ResultsMapClient"),
-  { 
+  {
     loading: () => (
-      <div className="w-full h-96 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center bg-gray-50 text-gray-600">
+      <div className="w-full h-96 rounded-3xl overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50 text-slate-600">
         Loading map...
       </div>
     ),
-    ssr: false 
+    ssr: false
   }
 );
 
-export default function ResultsMap({ destinations }: ResultsMapProps) {
-  return <DynamicMap destinations={destinations} />;
+export default function ResultsMap({ destinations, currency }: ResultsMapProps) {
+  return <DynamicMap destinations={destinations} currency={currency} />;
 }

@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useToast } from "@/hooks/useToast";
 import type { DestinationResult } from "@/lib/types";
 
 interface FavoriteButtonProps {
@@ -34,6 +35,7 @@ export function FavoriteButton({
   className = "",
 }: FavoriteButtonProps) {
   const { has, toggle, isHydrated } = useFavorites();
+  const toast = useToast();
   const [pulse, setPulse] = useState(false);
 
   const isFav = isHydrated && has(destination.placeId);
@@ -41,6 +43,7 @@ export function FavoriteButton({
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    const wasFav = isFav;
     toggle({
       placeId: destination.placeId,
       name: destination.name,
@@ -55,6 +58,11 @@ export function FavoriteButton({
     setPulse(true);
     setTimeout(() => setPulse(false), 600);
     onChange?.(!isFav);
+    if (wasFav) {
+      toast({ tone: "info", title: "Removed", description: `${destination.name} no longer in favorites.` });
+    } else {
+      toast({ tone: "success", title: "Saved", description: `${destination.name} added to favorites.` });
+    }
   };
 
   const aria = isFav ? "Remove from favorites" : "Save to favorites";

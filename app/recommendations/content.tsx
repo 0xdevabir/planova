@@ -9,7 +9,9 @@ import FilterSidebar, { FilterState } from "@/components/FilterSidebar";
 import CompareBar from "@/components/CompareBar";
 import ComparisonModal from "@/components/ComparisonModal";
 import ItineraryModal from "@/components/ItineraryModal";
+import ShareMenu from "@/components/ShareMenu";
 import { Card, EmptyState, Skeleton, SkeletonStack, StatTile } from "@/components/ui";
+import { useToast } from "@/hooks/useToast";
 import { SearchResponse, DestinationResult } from "@/lib/types";
 import { applyFilters, sortResults, priceBounds } from "@/lib/utils/filters";
 import { formatCurrency } from "@/lib/utils/money";
@@ -35,6 +37,7 @@ export default function RecommendationsContent() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [itineraryTarget, setItineraryTarget] = useState<DestinationResult | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -239,7 +242,19 @@ export default function RecommendationsContent() {
 
           {hasResults && (
             <div className="rounded-3xl overflow-hidden border border-white/60 hover-lift">
-              <ResultsMap destinations={filteredResults} />
+              <ResultsMap destinations={filteredResults} currency={currency} />
+            </div>
+          )}
+
+          {hasResults && (
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <p className="text-sm text-slate-500">
+                Share this search with friends or save it for later.
+              </p>
+              <ShareMenu
+                title={`Planova · ${searchResults?.query.destination}`}
+                description={`Check out ${filteredResults.length} destinations I shortlisted on Planova for ${searchResults?.query.destination}.`}
+              />
             </div>
           )}
         </Card>
