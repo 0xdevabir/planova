@@ -1,112 +1,115 @@
 // lib/services/hotelService.ts
+// Hotel cost estimator. Uses country-tier nightly base + vibe multiplier. Returns
+// a tiered sample of hotel options so the UI can render something realistic.
 
-import { HotelPrice } from "@/lib/types";
 import { getCached, setCached, generateCacheKey } from "@/lib/utils/cache";
+import { resolveCountry, DEFAULT_PRICING } from "@/lib/data/countryTiers";
+import { VIBE_BY_ID } from "@/lib/data/vibes";
+import type { HotelEstimate, TripVibe } from "@/lib/types";
 
-// Mock hotel data for MVP
-const mockHotels: Record<string, HotelPrice[]> = {
-  Paris: [
-    {
-      name: "Hotel Le Marais",
-      rating: 4.5,
-      price: 1200,
-      currency: "USD",
-      pricePerNight: 120,
-      nights: 10,
-      amenities: ["WiFi", "Breakfast", "Gym"],
-    },
-    {
-      name: "Budget Stay Paris",
-      rating: 3.8,
-      price: 600,
-      currency: "USD",
-      pricePerNight: 60,
-      nights: 10,
-      amenities: ["WiFi", "Lounge"],
-    },
-  ],
-  Tokyo: [
-    {
-      name: "Tokyo Palace Hotel",
-      rating: 4.8,
-      price: 1800,
-      currency: "USD",
-      pricePerNight: 180,
-      nights: 10,
-      amenities: ["WiFi", "Breakfast", "Gym", "Spa"],
-    },
-    {
-      name: "Tokyo Budget Inn",
-      rating: 3.9,
-      price: 800,
-      currency: "USD",
-      pricePerNight: 80,
-      nights: 10,
-      amenities: ["WiFi"],
-    },
-  ],
+export interface EstimateHotelInput {
+  destinationName: string;
+  destinationCountry?: string;
+  nights: number;
+  travelers: number;
+  vibes?: TripVibe[];
+}
+
+const VIBE_TIER_PREMIA: Record<"Budget" | "Comfort" | "Premium", number> = {
+  Budget: 0.55,
+  Comfort: 1.0,
+  Premium: 1.75,
 };
 
+/**
+ * Estimate hotel costs and sample three tiers of accommodations for a destination.
+ * The result is cached for 24 hours.
+ */
+export async function estimateHotel(input: EstimateHotelInput): Promise<HotelEstimate> {
+  const cacheKey = generateCacheKey(
+    "hotel:v2",
+    input.destinationName,
+    input.destinationCountry || "",
+    input.nights.toString(),
+    (input.vibes || []).sort().join(","),
+  );
+  const cached = getCached<HotelEstimate>(cacheKey);
+  if (cached) return cached;
+
+  const pricing = resolveCountry(input.destinationCountry || input.destinationName) || DEFAULT_PRICING;
+
+  const vibeCostMultiplier = (input.vibes || []).reduce((acc, v) => {
+    const cfg = VIBE_BY_ID[v];
+    return acc * (cfg?.costWeight ?? 1);
+  }, 1);
+  // Damp the multiplier so a luxury vibe doesn't triple the cost
+  const ctx = Math.pow(vibeCostMultiplier, 0.6);
+
+  const nightlyBase = pricing.hotelBaseUsd;
+  const nightlyAverage = Math.round(nightlyBase * ctx);
+  const total = nightlyAverage * Math.max(1, input.nights);
+
+  const sampleHotels = (["Budget", "Comfort", "Premium"] as const).map((tier) => {
+    const premium = VIBE_TIER_PREMIA[tier];
+    const pricePerNight = Math.round(nightlyBase * ctx * premium);
+    const rating = tier === "Budget" ? 3.8 : tier === "Comfort" ? 4.3 : 4.7;
+    const amenities =
+      tier === "Budget"
+        ? ["Free Wi-Fi", "Air conditioning"]
+        : tier === "Comfort"
+        ? ["Free Wi-Fi", "Breakfast", "Gym", "Air conditioning"]
+        : ["Free Wi-Fi", "Breakfast", "Gym", "Spa", "Concierge", "Pool"];
+    return {
+      name: `${tier === "Budget" ? "Smart" : tier === "Comfort" ? "Boutique" : "Grand"} ${input.destinationName} ${
+        tier === "Budget" ? "Stay" : tier === "Comfort" ? "Hotel" : "Resort"
+      }`,
+      rating,
+      pricePerNight,
+      amenities,
+      tier,
+    };
+  });
+
+  const result: HotelEstimate = {
+    country: pricing.name,
+    nights: input.nights,
+    nightlyBase,
+    nightlyAverage,
+    total,
+    currency: "USD",
+    tier: pricing.tier,
+    sampleHotels,
+  };
+
+  setCached(cacheKey, result, 24 * 60 * 60 * 1000);
+  return result;
+}
+
+/**
+ * @deprecated Kept for backwards compatibility. New code should use estimateHotel.
+ */
 export async function getHotelPrices(
   destination: string,
   checkIn: Date,
   checkOut: Date,
-  travelers: number
-): Promise<HotelPrice[]> {
-  const cacheKey = generateCacheKey(
-    "hotels",
-    destination,
-    checkIn.toISOString(),
-    checkOut.toISOString()
+  travelers: number,
+): Promise<HotelEstimate[]> {
+  const nights = Math.max(
+    1,
+    Math.round((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)),
   );
-
-  const cached = getCached<HotelPrice[]>(cacheKey);
-  if (cached) return cached;
-
-  try {
-    // Real API would call Booking.com, Expedia, or Airbnb
-    // For MVP: return mock data
-    const hotels = mockHotels[destination] || [];
-
-    if (hotels.length === 0) {
-      // Generate mock hotels for unknown destinations
-      const nights = Math.ceil(
-        (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const mockHotels: HotelPrice[] = [
-        {
-          name: `${destination} Luxury Hotel`,
-          rating: 4.5,
-          pricePerNight: 150,
-          nights,
-          price: 150 * nights,
-          currency: "USD",
-          amenities: ["WiFi", "Breakfast", "Gym"],
-        },
-        {
-          name: `${destination} Budget Hotel`,
-          rating: 3.8,
-          pricePerNight: 60,
-          nights,
-          price: 60 * nights,
-          currency: "USD",
-          amenities: ["WiFi"],
-        },
-      ];
-      setCached(cacheKey, mockHotels, 24 * 60 * 60 * 1000); // Cache for 24 hours
-      return mockHotels;
-    }
-
-    // Cache for 24 hours
-    setCached(cacheKey, hotels, 24 * 60 * 60 * 1000);
-    return hotels;
-  } catch (error) {
-    console.error("Error fetching hotel prices:", error);
-    throw new Error("Failed to fetch hotel prices");
-  }
+  const estimate = await estimateHotel({
+    destinationName: destination,
+    nights,
+    travelers,
+  });
+  return [estimate];
 }
 
-export function getAverageHotelCost(hotels: HotelPrice[]): number {
+/**
+ * Average hotel cost for legacy callers.
+ */
+export function getAverageHotelCost(hotels: HotelEstimate[]): number {
   if (hotels.length === 0) return 0;
-  return hotels.reduce((sum, h) => sum + h.price, 0) / hotels.length;
+  return hotels.reduce((sum, h) => sum + h.total, 0) / hotels.length;
 }
