@@ -10,7 +10,6 @@ export default function SupportPage() {
     <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
-        theme="mint"
         image
         eyebrow="Support"
         title={

@@ -11,7 +11,6 @@ export default function AppInfoPage() {
     <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
-        theme="violet"
         image
         eyebrow="Get the app"
         title={

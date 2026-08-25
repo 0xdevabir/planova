@@ -34,7 +34,6 @@ export default function HowItWorks() {
     <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
-        theme="indigo"
         image
         eyebrow="How it works"
         title={
