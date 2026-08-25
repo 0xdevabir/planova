@@ -23,9 +23,9 @@ export default function SupportPage() {
         description="Quick answers, helpful docs, and a friendly inbox — pick whichever channel works for you."
         action={
           <div className="flex flex-wrap justify-center gap-3">
-            <Badge tone="vibe">24h email response</Badge>
-            <Badge tone="vibe">Self-serve docs</Badge>
-            <Badge tone="vibe">Status page</Badge>
+            <Link href="/" className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition-colors">
+              Back to planner
+            </Link>
           </div>
         }
       />

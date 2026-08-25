@@ -10,7 +10,7 @@ const featureSets = [
     emoji: "🗺️",
     title: "Map-first discovery",
     desc: "Tap anywhere, autocomplete smartly guesses intent, and we fetch details across providers for resilience.",
-    points: ["Google + OSM fallback", "Tap-to-set coordinates", "Instant nearby relevance"],
+    points: ["Catalog-first search", "OSM enrichment", "Tap-to-set coordinates"],
     gradient: "from-cyan-400 to-blue-500",
   },
   {
@@ -30,8 +30,8 @@ const featureSets = [
   {
     emoji: "📅",
     title: "Day-by-day itinerary",
-    desc: "Pull up a generated itinerary for any destination with morning/afternoon/evening blocks.",
-    points: ["Vibe-aware blocks", "Cost estimates per activity", "Total in selected currency"],
+    desc: "Open any destination for a day plan built from real OpenStreetMap attractions and restaurants.",
+    points: ["Real OSM places", "Stay & Eat tabs", "Cost estimates per day"],
     gradient: "from-amber-400 to-orange-500",
   },
   {
@@ -67,12 +67,12 @@ export default function FeaturesPage() {
         }
         description="From map-first selection to budget guardrails and signal-rich cards, Planova keeps every decision transparent."
         action={
-          <div className="flex flex-wrap justify-center gap-3 text-sm text-white/80">
-            <Badge tone="vibe">Autocomplete + map picking</Badge>
-            <Badge tone="vibe">Value scoring</Badge>
-            <Badge tone="vibe">Safety + weather signals</Badge>
-            <Badge tone="vibe">Vibe-aware ranking</Badge>
-          </div>
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition-colors"
+          >
+            Start planning
+          </Link>
         }
       />
 
