@@ -9,26 +9,28 @@ import { FaRoute } from "react-icons/fa";
 interface DestinationCardProps {
   destination: DestinationResult;
   onSelect?: (destination: DestinationResult) => void;
+  onOpen?: (destination: DestinationResult) => void;
   onItinerary?: (destination: DestinationResult) => void;
   currency?: string;
   compact?: boolean;
 }
 
-export default function DestinationCard({ destination, onSelect, onItinerary, currency = "USD", compact = false }: DestinationCardProps) {
+export default function DestinationCard({ destination, onSelect, onOpen, onItinerary, currency = "USD", compact = false }: DestinationCardProps) {
   const primaryVibe = destination.vibes?.[0] ? VIBE_BY_ID[destination.vibes[0]] : null;
   const headerGradient = primaryVibe?.gradient ?? "from-cyan-500 via-blue-500 to-indigo-600";
   const vibeEmojis = (destination.vibes || []).slice(0, 3).map((v) => VIBE_BY_ID[v]?.emoji).filter(Boolean);
 
   return (
     <div
-      onClick={() => onSelect?.(destination)}
-      role={onSelect ? "button" : undefined}
-      tabIndex={onSelect ? 0 : -1}
+      onClick={() => (onOpen || onSelect)?.(destination)}
+      role={onOpen || onSelect ? "button" : undefined}
+      tabIndex={onOpen || onSelect ? 0 : -1}
       onKeyDown={(e) => {
-        if (!onSelect) return;
+        const handler = onOpen || onSelect;
+        if (!handler) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onSelect(destination);
+          handler(destination);
         }
       }}
       className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 overflow-hidden hover:shadow-xl hover:shadow-gray-300/50 transition-all duration-300 border border-gray-100 group hover-lift relative cursor-pointer"
@@ -208,16 +210,28 @@ export default function DestinationCard({ destination, onSelect, onItinerary, cu
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-2 pt-2">
+          {onOpen && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpen(destination);
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift"
+            >
+              Open destination
+            </button>
+          )}
           <button
             type="button"
             onClick={(e) => {
               e.stopPropagation();
               onItinerary?.(destination);
             }}
-            className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 hover-lift"
+            className="w-full inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold py-2.5 rounded-xl transition-colors"
           >
             <FaRoute className="text-xs" />
-            Day-by-day itinerary
+            Quick itinerary
           </button>
           {onSelect && (
             <button

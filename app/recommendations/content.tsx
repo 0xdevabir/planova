@@ -16,6 +16,7 @@ import { SearchResponse, DestinationResult } from "@/lib/types";
 import { applyFilters, sortResults, priceBounds } from "@/lib/utils/filters";
 import { formatCurrency } from "@/lib/utils/money";
 import { loadSearchResults, searchCacheKey } from "@/lib/utils/searchCache";
+import { storeDestination } from "@/lib/utils/destinationCache";
 import { FaArrowLeft, FaSearch } from "react-icons/fa";
 
 const DEFAULT_FILTERS: FilterState = {
@@ -168,8 +169,22 @@ export default function RecommendationsContent() {
       .filter((d): d is DestinationResult => Boolean(d));
   }, [compareIds, searchResults]);
 
-  // When a user clicks a destination card, send them back to the home page
-  // with the destination prefilled in the search bar.
+  const handleOpenDestination = (destination: DestinationResult) => {
+    storeDestination(destination);
+    const params = new URLSearchParams();
+    const q = searchResults?.query;
+    if (q?.destination) params.set("origin", q.destination);
+    if (q?.startDate) params.set("startDate", new Date(q.startDate).toISOString().split("T")[0]);
+    if (q?.endDate) params.set("endDate", new Date(q.endDate).toISOString().split("T")[0]);
+    if (q?.travelers) params.set("travelers", String(q.travelers));
+    if (q?.currency) params.set("currency", q.currency);
+    if (q?.budgetMin != null) params.set("budgetMin", String(q.budgetMin));
+    if (q?.budgetMax != null) params.set("budgetMax", String(q.budgetMax));
+    const qs = params.toString();
+    router.push(`/destinations/${encodeURIComponent(destination.placeId)}${qs ? `?${qs}` : ""}`);
+  };
+
+  // Secondary: use this destination as a new search origin on home.
   const handleSelectDestination = (destination: DestinationResult) => {
     const params = new URLSearchParams({
       from: destination.name,
@@ -326,6 +341,7 @@ export default function RecommendationsContent() {
                       <DestinationCard
                         destination={destination}
                         currency={currency}
+                        onOpen={handleOpenDestination}
                         onSelect={handleSelectDestination}
                         onItinerary={(d) => setItineraryTarget(d)}
                       />
