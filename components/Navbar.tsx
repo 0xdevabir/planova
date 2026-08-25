@@ -7,9 +7,10 @@ import Link from "next/link";
 import { FaPlane } from "react-icons/fa";
 
 const links = [
+  { href: "/explore", label: "Explore" },
+  { href: "/guides", label: "Guides" },
   { href: "/features", label: "Features" },
   { href: "/how-it-works", label: "How it works" },
-  { href: "/testimonials", label: "Testimonials" },
   { href: "/support", label: "Support" },
 ];
 
@@ -88,3 +89,4 @@ export default function Navbar() {
     </nav>
   );
 }
+

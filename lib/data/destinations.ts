@@ -238,3 +238,17 @@ export function toDestination(c: CatalogDestination): Destination {
 export function findById(placeId: string): CatalogDestination | undefined {
   return CATALOG_BY_ID[placeId];
 }
+
+/** URL slug for SEO pages, e.g. cat_paris_fr → paris-fr */
+export function toSlug(c: CatalogDestination): string {
+  return c.placeId.replace(/^cat_/, "").replace(/_/g, "-");
+}
+
+export function findBySlug(slug: string): CatalogDestination | undefined {
+  const normalized = slug.trim().toLowerCase();
+  return CATALOG.find((c) => toSlug(c) === normalized);
+}
+
+export function allSlugs(): string[] {
+  return CATALOG.map(toSlug);
+}
