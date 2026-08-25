@@ -6,8 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { loadDestination, storeDestination } from "@/lib/utils/destinationCache";
 import { findById } from "@/lib/data/destinations";
-import type { DestinationResult } from "@/lib/types";
+import type { DestinationResult, OsmPoi } from "@/lib/types";
 import ResultsMap from "@/components/ResultsMap";
+import PoiList from "@/components/PoiList";
 import { formatCurrency } from "@/lib/utils/money";
 import { FaArrowLeft, FaMapMarkerAlt } from "react-icons/fa";
 
@@ -51,6 +52,9 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
   const [destination, setDestination] = useState<DestinationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<TabId>("overview");
+  const [hotels, setHotels] = useState<OsmPoi[]>([]);
+  const [hotelsLoading, setHotelsLoading] = useState(false);
+  const [hotelsLoaded, setHotelsLoaded] = useState(false);
 
   const tripContext = useMemo(
     () => ({
@@ -77,6 +81,35 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
     if (fallback) storeDestination(fallback);
     setLoading(false);
   }, [placeId]);
+
+  // Fetch hotels when Stay tab opens (lazy)
+  useEffect(() => {
+    if (tab !== "stay" || !destination || hotelsLoaded) return;
+    let cancelled = false;
+    (async () => {
+      setHotelsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/places/hotels?lat=${destination.latitude}&lng=${destination.longitude}&limit=20`,
+        );
+        const data = await res.json();
+        if (!cancelled) {
+          setHotels(Array.isArray(data.hotels) ? data.hotels : []);
+          setHotelsLoaded(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setHotels([]);
+          setHotelsLoaded(true);
+        }
+      } finally {
+        if (!cancelled) setHotelsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, destination, hotelsLoaded]);
 
   if (loading) {
     return (
@@ -325,8 +358,45 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
             </div>
           )}
           {tab === "stay" && (
-            <div className="text-slate-400 text-sm">
-              Real hotel listings from OpenStreetMap will appear here.
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Where to stay</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  Real lodgings nearby from OpenStreetMap. Links are free now; commission-ready later.
+                </p>
+              </div>
+
+              {destination.hotelEstimate?.sampleHotels && destination.hotelEstimate.sampleHotels.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-white mb-3">Budget guidance</h3>
+                  <div className="grid sm:grid-cols-3 gap-3">
+                    {destination.hotelEstimate.sampleHotels.map((h) => (
+                      <div
+                        key={h.tier}
+                        className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-1"
+                      >
+                        <div className="text-xs uppercase tracking-wide text-cyan-300/80">{h.tier}</div>
+                        <div className="text-white font-medium text-sm truncate">{h.name}</div>
+                        <div className="text-slate-300 text-sm">
+                          {formatCurrency(h.pricePerNight, tripContext.currency)}
+                          <span className="text-slate-500"> / night</span>
+                        </div>
+                        <div className="text-xs text-slate-500">{h.rating.toFixed(1)}★ · estimate</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-3">Nearby hotels</h3>
+                <PoiList
+                  items={hotels}
+                  loading={hotelsLoading}
+                  kindLabel="hotels"
+                  emptyMessage="No hotels found nearby in OpenStreetMap yet. Try another city or check back later."
+                />
+              </div>
             </div>
           )}
           {tab === "eat" && (
