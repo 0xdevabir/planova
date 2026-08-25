@@ -55,6 +55,10 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
   const [hotels, setHotels] = useState<OsmPoi[]>([]);
   const [hotelsLoading, setHotelsLoading] = useState(false);
   const [hotelsLoaded, setHotelsLoaded] = useState(false);
+  const [restaurants, setRestaurants] = useState<OsmPoi[]>([]);
+  const [restaurantsLoading, setRestaurantsLoading] = useState(false);
+  const [restaurantsLoaded, setRestaurantsLoaded] = useState(false);
+  const [cuisineFilter, setCuisineFilter] = useState("");
 
   const tripContext = useMemo(
     () => ({
@@ -110,6 +114,35 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
       cancelled = true;
     };
   }, [tab, destination, hotelsLoaded]);
+
+  // Fetch restaurants when Eat tab opens (lazy)
+  useEffect(() => {
+    if (tab !== "eat" || !destination || restaurantsLoaded) return;
+    let cancelled = false;
+    (async () => {
+      setRestaurantsLoading(true);
+      try {
+        const res = await fetch(
+          `/api/places/restaurants?lat=${destination.latitude}&lng=${destination.longitude}&limit=24`,
+        );
+        const data = await res.json();
+        if (!cancelled) {
+          setRestaurants(Array.isArray(data.restaurants) ? data.restaurants : []);
+          setRestaurantsLoaded(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setRestaurants([]);
+          setRestaurantsLoaded(true);
+        }
+      } finally {
+        if (!cancelled) setRestaurantsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, destination, restaurantsLoaded]);
 
   if (loading) {
     return (
@@ -400,8 +433,52 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
             </div>
           )}
           {tab === "eat" && (
-            <div className="text-slate-400 text-sm">
-              Local restaurants and cafés from OpenStreetMap will appear here.
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Where to eat</h2>
+                  <p className="text-sm text-slate-400 mt-1">
+                    Restaurants and cafés nearby from OpenStreetMap.
+                  </p>
+                </div>
+                <label className="text-sm text-slate-400">
+                  <span className="sr-only">Filter by cuisine</span>
+                  <select
+                    value={cuisineFilter}
+                    onChange={(e) => setCuisineFilter(e.target.value)}
+                    className="mt-1 block rounded-lg bg-black/40 border border-white/15 text-slate-200 text-sm px-3 py-2"
+                  >
+                    <option value="">All cuisines</option>
+                    {Array.from(
+                      new Set(
+                        restaurants
+                          .flatMap((r) => (r.cuisine || "").split(",").map((c) => c.trim().toLowerCase()))
+                          .filter(Boolean),
+                      ),
+                    )
+                      .sort()
+                      .slice(0, 20)
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </label>
+              </div>
+
+              <PoiList
+                items={
+                  cuisineFilter
+                    ? restaurants.filter((r) =>
+                        (r.cuisine || "").toLowerCase().includes(cuisineFilter),
+                      )
+                    : restaurants
+                }
+                loading={restaurantsLoading}
+                kindLabel="restaurants"
+                emptyMessage="No restaurants found nearby in OpenStreetMap yet."
+              />
             </div>
           )}
         </section>
