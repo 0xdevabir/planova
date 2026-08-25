@@ -1,11 +1,7 @@
 // app/api/places/search/route.ts
-// Search pipeline that always returns a useful list:
-//   1. Curated catalog (instant, reliable)
-//   2. OpenStreetMap enrichment (optional, for fresh data)
-//   3. Google Places supplement (only when a key is configured)
-//
-// The catalog is the source of truth — even if all external providers fail,
-// the user still gets 6+ well-described destinations.
+// Geography-first destination search.
+// Catalog is the source of truth. External APIs may enrich nearby POIs only —
+// they must never drown out nearby catalog destinations with famous far cities.
 
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -13,10 +9,14 @@ import {
   nearestCatalog,
   toDestination,
   findById,
+  CATALOG,
   type CatalogDestination,
 } from "@/lib/data/destinations";
 import type { Destination, TripVibe } from "@/lib/types";
 import { haversineKm } from "@/lib/utils/geo";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface RawPlace {
   placeId: string;
@@ -29,6 +29,14 @@ interface RawPlace {
   reviews?: number;
   vibes?: TripVibe[];
   source: "catalog" | "osm" | "google";
+  countryCode?: string;
+}
+
+const ADMIN_SUFFIX =
+  /\b(division|district|province|region|state|city|metro|area|county|municipality)\b/gi;
+
+function cleanQuery(query: string): string {
+  return query.replace(ADMIN_SUFFIX, " ").replace(/\s+/g, " ").trim();
 }
 
 function resolveVibes(p: RawPlace): TripVibe[] | undefined {
@@ -46,8 +54,19 @@ function dedupe(places: RawPlace[]): RawPlace[] {
   const seen = new Set<string>();
   const result: RawPlace[] = [];
   for (const p of places) {
-    const key = p.placeId || `${p.name.toLowerCase()}|${p.latitude.toFixed(3)}|${p.longitude.toFixed(3)}`;
+    const key =
+      p.placeId ||
+      `${p.name.toLowerCase()}|${p.latitude.toFixed(2)}|${p.longitude.toFixed(2)}`;
     if (seen.has(key)) continue;
+    const nearDup = result.some(
+      (r) =>
+        r.name.toLowerCase() === p.name.toLowerCase() &&
+        haversineKm(
+          { latitude: r.latitude, longitude: r.longitude },
+          { latitude: p.latitude, longitude: p.longitude },
+        ) < 30,
+    );
+    if (nearDup) continue;
     seen.add(key);
     result.push(p);
   }
@@ -68,96 +87,6 @@ function toResponse(p: RawPlace): Destination {
   };
 }
 
-async function fetchOsm(query: string, limit: number): Promise<RawPlace[]> {
-  try {
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=${limit}&addressdetails=1&accept-language=en&q=${encodeURIComponent(query)}`;
-    const res = await fetch(url, {
-      headers: { "User-Agent": "planova-app/1.0 (contact@planova.app)" },
-      next: { revalidate: 1800 },
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return data.slice(0, limit).map((p: any) => {
-      const addr = p.address || {};
-      const address =
-        [addr.city || addr.town || addr.village || addr.hamlet, addr.country]
-          .filter(Boolean)
-          .join(", ") || p.display_name;
-      return {
-        placeId: `osm_${p.place_id}`,
-        name: p.name || p.display_name?.split(",")[0] || "Point of interest",
-        latitude: parseFloat(p.lat),
-        longitude: parseFloat(p.lon),
-        address,
-        description: "Tourist destination",
-        rating: 4.0,
-        reviews: 0,
-        source: "osm" as const,
-      };
-    });
-  } catch (err) {
-    console.error("[places/search] OSM error:", err);
-    return [];
-  }
-}
-
-async function fetchGoogle(query: string, latitude: number, longitude: number): Promise<RawPlace[]> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-  if (!apiKey) return [];
-  const collected: RawPlace[] = [];
-  try {
-    const textUrl = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query + " tourist attractions")}&key=${apiKey}`;
-    const textRes = await fetch(textUrl, { next: { revalidate: 1800 } });
-    const textData = await textRes.json();
-    if (textData.status === "OK" && Array.isArray(textData.results)) {
-      for (const p of textData.results) {
-        const loc = p.geometry?.location;
-        if (!loc) continue;
-        collected.push({
-          placeId: `google_${p.place_id}`,
-          name: p.name,
-          latitude: loc.lat,
-          longitude: loc.lng,
-          address: p.formatted_address || p.vicinity,
-          description: (p.types || []).join(", "),
-          rating: p.rating || 4.0,
-          reviews: p.user_ratings_total || 0,
-          source: "google",
-        });
-      }
-    }
-  } catch (err) {
-    console.error("[places/search] Google error:", err);
-  }
-  // Supplementation by nearby search
-  if (collected.length < 6) {
-    try {
-      const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=50000&type=tourist_attraction&key=${apiKey}`;
-      const res = await fetch(url, { next: { revalidate: 1800 } });
-      const data = await res.json();
-      if (Array.isArray(data.results)) {
-        for (const p of data.results) {
-          const loc = p.geometry?.location;
-          if (!loc) continue;
-          collected.push({
-            placeId: `google_${p.place_id}`,
-            name: p.name,
-            latitude: loc.lat,
-            longitude: loc.lng,
-            address: p.vicinity || p.formatted_address,
-            description: (p.types || []).join(", "),
-            rating: p.rating || 4.0,
-            reviews: p.user_ratings_total || 0,
-            source: "google",
-          });
-        }
-      }
-    } catch {}
-  }
-  return collected;
-}
-
 function catalogToRaw(c: CatalogDestination): RawPlace {
   return {
     placeId: c.placeId,
@@ -170,16 +99,124 @@ function catalogToRaw(c: CatalogDestination): RawPlace {
     reviews: c.reviews,
     vibes: c.vibes,
     source: "catalog",
+    countryCode: c.countryCode,
   };
+}
+
+function inferOriginCity(latitude: number, longitude: number): CatalogDestination {
+  return nearestCatalog(latitude, longitude, 1)[0] || CATALOG[0];
+}
+
+function scorePlace(
+  p: RawPlace,
+  origin: { latitude: number; longitude: number },
+  originCountry: string,
+): { p: RawPlace; km: number; score: number; tier: number } {
+  const km = haversineKm(origin, {
+    latitude: p.latitude,
+    longitude: p.longitude,
+  });
+
+  let tier: number;
+  if (p.countryCode === originCountry || km <= 450) tier = 0;
+  else if (km <= 900) tier = 1;
+  else if (km <= 1600) tier = 2;
+  else tier = 3;
+
+  const ratingScore = (p.rating ?? 4) * 2;
+  const sourceBonus = p.source === "catalog" ? 12 : p.source === "google" ? 2 : 1;
+  const sameCountryBonus = p.countryCode === originCountry ? 40 : 0;
+  const distancePenalty = km / 10;
+  const nearBonus = km <= 250 ? 30 : km <= 450 ? 18 : km <= 900 ? 8 : 0;
+
+  const score = ratingScore + sourceBonus + sameCountryBonus + nearBonus - distancePenalty;
+  return { p, km, score, tier };
+}
+
+async function fetchOsmNearby(
+  latitude: number,
+  longitude: number,
+  limit: number,
+): Promise<RawPlace[]> {
+  try {
+    const delta = 3.5;
+    const url =
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=${limit}` +
+      `&addressdetails=1&accept-language=en` +
+      `&viewbox=${longitude - delta},${latitude + delta},${longitude + delta},${latitude - delta}` +
+      `&bounded=1` +
+      `&q=${encodeURIComponent("city")}`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "planova-app/1.0 (contact@planova.app)" },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+    return data.slice(0, limit).map((item: Record<string, unknown>) => {
+      const addr = (item.address || {}) as Record<string, string>;
+      const address =
+        [addr.city || addr.town || addr.village || addr.state, addr.country]
+          .filter(Boolean)
+          .join(", ") || String(item.display_name || "");
+      return {
+        placeId: `osm_${item.place_id}`,
+        name: String(item.name || String(item.display_name || "").split(",")[0] || "Place"),
+        latitude: parseFloat(String(item.lat)),
+        longitude: parseFloat(String(item.lon)),
+        address,
+        description: "Nearby destination",
+        rating: 4.0,
+        reviews: 0,
+        source: "osm" as const,
+        countryCode: addr.country_code?.toUpperCase(),
+      };
+    });
+  } catch (err) {
+    console.error("[places/search] OSM error:", err);
+    return [];
+  }
+}
+
+async function fetchGoogleNearby(
+  latitude: number,
+  longitude: number,
+): Promise<RawPlace[]> {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) return [];
+  try {
+    const url =
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json` +
+      `?location=${latitude},${longitude}&radius=120000&type=tourist_attraction&key=${apiKey}`;
+    const res = await fetch(url, { cache: "no-store" });
+    const data = await res.json();
+    if (!Array.isArray(data.results)) return [];
+    return data.results.slice(0, 8).map((item: Record<string, any>) => {
+      const loc = item.geometry?.location;
+      return {
+        placeId: `google_${item.place_id}`,
+        name: item.name as string,
+        latitude: loc?.lat as number,
+        longitude: loc?.lng as number,
+        address: item.vicinity || item.formatted_address,
+        description: (item.types || []).join(", "),
+        rating: item.rating || 4.0,
+        reviews: item.user_ratings_total || 0,
+        source: "google" as const,
+      };
+    });
+  } catch (err) {
+    console.error("[places/search] Google error:", err);
+    return [];
+  }
 }
 
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
-  const query = (params.get("query") || "").trim();
-  const latStr = params.get("latitude");
-  const lngStr = params.get("longitude");
-  const latitude = latStr ? parseFloat(latStr) : NaN;
-  const longitude = lngStr ? parseFloat(lngStr) : NaN;
+  const rawQuery = (params.get("query") || "").trim();
+  const query = cleanQuery(rawQuery);
+  const latitude = parseFloat(params.get("latitude") || "");
+  const longitude = parseFloat(params.get("longitude") || "");
   const limit = Math.min(20, Math.max(6, parseInt(params.get("limit") || "12", 10)));
 
   if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
@@ -189,79 +226,126 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // 1) Curated catalog — text matches first, always seeded with nearest places
-  //    so a query like "Dhaka Division" never returns faraway India-only hits.
-  const textMatches = query ? searchCatalog(query, limit) : [];
-  const nearbyMatches = nearestCatalog(latitude, longitude, Math.max(limit, 12));
-  const catalogMatches: CatalogDestination[] = [];
-  const seenIds = new Set<string>();
-  for (const c of [...textMatches, ...nearbyMatches]) {
-    if (seenIds.has(c.placeId)) continue;
-    seenIds.add(c.placeId);
-    catalogMatches.push(c);
-    if (catalogMatches.length >= limit) break;
+  const origin = { latitude, longitude };
+  const originCity = inferOriginCity(latitude, longitude);
+  const originCountry = originCity.countryCode;
+
+  const nearbyMatches = nearestCatalog(latitude, longitude, Math.max(limit * 2, 24));
+  const textMatches = query ? searchCatalog(query, 8) : [];
+
+  const seed: CatalogDestination[] = [];
+  const seen = new Set<string>();
+  for (const c of [...nearbyMatches, ...textMatches]) {
+    if (seen.has(c.placeId)) continue;
+    seen.add(c.placeId);
+    seed.push(c);
   }
 
-  // 2) OSM enrichment (rate-limited; non-blocking if it fails)
-  const osmPromise = query ? fetchOsm(query, 8) : Promise.resolve([]);
+  // Catalog already covers densest regions — only enrich when local pool is thin
+  const localCatalogCount = seed.filter((c) => {
+    const km = haversineKm(origin, { latitude: c.latitude, longitude: c.longitude });
+    return km <= 900;
+  }).length;
 
-  // 3) Google enrichment (skipped if no key)
-  const googlePromise = fetchGoogle(query || "tourist attractions", latitude, longitude);
+  let osmPlaces: RawPlace[] = [];
+  let googlePlaces: RawPlace[] = [];
+  if (localCatalogCount < 6) {
+    [osmPlaces, googlePlaces] = await Promise.all([
+      fetchOsmNearby(latitude, longitude, 6),
+      fetchGoogleNearby(latitude, longitude),
+    ]);
+    // Keep enrichment in-country / very near — drop random OSM villages
+    osmPlaces = osmPlaces.filter((p) => {
+      const km = haversineKm(origin, { latitude: p.latitude, longitude: p.longitude });
+      return p.countryCode === originCountry || km <= 350;
+    });
+  }
 
-  const [osmPlaces, googlePlaces] = await Promise.all([osmPromise, googlePromise]);
+  const combined: RawPlace[] = [
+    ...seed.map(catalogToRaw),
+    ...googlePlaces,
+    ...osmPlaces,
+  ];
 
-  // Combine — catalog first (deterministic ordering), then supplements by
-  // popularity/rating. Dedup by placeId and name.
-  const combined: RawPlace[] = [];
-  for (const c of catalogMatches) combined.push(catalogToRaw(c));
-  for (const g of googlePlaces) combined.push(g);
-  for (const o of osmPlaces) combined.push(o);
-
-  // Drop noisy OSM hits that don't actually look like destinations and that
-  // are far from the user's anchor (> 25 000 km haversine = always wrong).
+  const ORIGIN_EXCLUDE_KM = 80;
   const filtered = combined.filter((p) => {
-    if (Number.isNaN(p.latitude) || Number.isNaN(p.longitude)) return false;
-    const km = haversineKm(
-      { latitude, longitude },
-      { latitude: p.latitude, longitude: p.longitude },
-    );
-    // Allow long-haul — the user is searching from one place globally —
-    // but reject impossible coordinates.
-    if (km > 25_000) return false;
+    if (!Number.isFinite(p.latitude) || !Number.isFinite(p.longitude)) return false;
+    const km = haversineKm(origin, {
+      latitude: p.latitude,
+      longitude: p.longitude,
+    });
+    if (km < ORIGIN_EXCLUDE_KM) return false;
+    if (km > 20_000) return false;
     return true;
   });
 
   const deduped = dedupe(filtered);
-
-  // Score: geography first. Distant "popular" cities must not beat nearby ones.
-  // Soft radius: prefer ≤1200 km; still allow farther catalog hits at the end.
   const scored = deduped
-    .map((p) => {
-      const km = haversineKm(
-        { latitude, longitude },
-        { latitude: p.latitude, longitude: p.longitude },
-      );
-      const ratingScore = (p.rating ?? 4) * 6;
-      const sourceBonus = p.source === "catalog" ? 20 : p.source === "google" ? 6 : 2;
-      // ~1 point per 25 km — 500 km ≈ -20, 1500 km ≈ -60
-      const distancePenalty = km / 25;
-      const nearBonus = km <= 400 ? 35 : km <= 800 ? 20 : km <= 1200 ? 8 : 0;
-      return { p, km, score: ratingScore + sourceBonus + nearBonus - distancePenalty };
-    })
-    .sort((a, b) => b.score - a.score || a.km - b.km);
+    .map((p) => scorePlace(p, origin, originCountry))
+    .sort((a, b) => a.tier - b.tier || b.score - a.score || a.km - b.km);
 
-  // Keep a nearby-first pool, then fill with the rest
-  const nearPool = scored.filter((x) => x.km <= 1200);
-  const farPool = scored.filter((x) => x.km > 1200);
-  const picked = [...nearPool, ...farPool].slice(0, limit).map(({ p }) => toResponse(p));
-  const scoredFinal = picked;
+  const localQuota = Math.min(limit, Math.max(6, Math.ceil(limit * 0.65)));
+  const regionalQuota = Math.min(
+    Math.max(0, limit - localQuota),
+    Math.max(2, Math.ceil(limit * 0.2)),
+  );
+  const wideQuota = Math.max(0, limit - localQuota - regionalQuota);
 
-  // Final safety net — if for any reason scored is empty, dump the closest
-  // catalog entries. This *never* returns an empty array.
-  if (scoredFinal.length === 0) {
-    const fallback = nearestCatalog(latitude, longitude, limit).map(toDestination);
-    return NextResponse.json({ places: fallback, source: "catalog-fallback" });
+  const picked: RawPlace[] = [];
+  const pushFromTier = (tiers: number[], max: number) => {
+    let added = 0;
+    for (const row of scored) {
+      if (picked.length >= limit || added >= max) break;
+      if (!tiers.includes(row.tier)) continue;
+      if (picked.some((x) => x.placeId === row.p.placeId)) continue;
+      picked.push(row.p);
+      added += 1;
+    }
+  };
+
+  pushFromTier([0], localQuota);
+  pushFromTier([1], regionalQuota);
+  pushFromTier([2, 3], wideQuota);
+
+  // Top up only with nearby/regional — never pad the list with famous far cities
+  // when we already have a solid local set (the original Dhaka→India bug).
+  const localPicked = picked.filter(
+    (p) => scorePlace(p, origin, originCountry).tier === 0,
+  ).length;
+  if (picked.length < limit) {
+    for (const row of scored) {
+      if (picked.length >= limit) break;
+      if (picked.some((x) => x.placeId === row.p.placeId)) continue;
+      if (localPicked >= 6 && row.tier >= 2) continue;
+      if (row.tier >= 3) continue;
+      picked.push(row.p);
+    }
   }
 
-  return NextResponse.json({ places: scoredFinal, source: "mixed" });
+  if (picked.length === 0) {
+    const fallback = nearestCatalog(latitude, longitude, limit + 3)
+      .filter(
+        (c) =>
+          haversineKm(origin, { latitude: c.latitude, longitude: c.longitude }) >=
+          ORIGIN_EXCLUDE_KM,
+      )
+      .slice(0, limit)
+      .map(toDestination);
+    return NextResponse.json({
+      places: fallback,
+      source: "catalog-fallback",
+      meta: { strategy: "nearby-first-v2", originCountry },
+    });
+  }
+
+  return NextResponse.json({
+    places: picked.map(toResponse),
+    source: "mixed",
+    meta: {
+      strategy: "nearby-first-v2",
+      originCountry,
+      originCity: originCity.name,
+      query: query || null,
+    },
+  });
 }

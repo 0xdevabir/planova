@@ -14,6 +14,7 @@ import { getNearbyDestinations } from "./destinationService";
 import { computeBudget } from "./budgetCalculator";
 import { VIBE_BY_ID } from "@/lib/data/vibes";
 import { getCached, setCached, generateCacheKey } from "@/lib/utils/cache";
+import { haversineKm } from "@/lib/utils/geo";
 
 export async function searchDestinations(
   params: SearchParams,
@@ -25,7 +26,7 @@ export async function searchDestinations(
   };
 
   const cacheKey = generateCacheKey(
-    "search:v6",
+    "search:v7",
     (Math.round(params.latitude * 100) / 100).toString(),
     (Math.round(params.longitude * 100) / 100).toString(),
     params.budgetMin.toString(),
@@ -165,7 +166,23 @@ export async function searchDestinations(
   );
 
   let pool = strict.length >= 6 ? strict : relaxed.length > 0 ? relaxed : annotated;
-  pool = pool.slice().sort((a, b) => b.valueScore - a.valueScore);
+  // Geography first, value second — stops famous far cities (Jaipur/Hanoi) from
+  // outranking Cox's Bazar / Sylhet just because ratings/budget fit look prettier.
+  pool = pool.slice().sort((a, b) => {
+    const kmA = haversineKm(
+      { latitude: params.latitude, longitude: params.longitude },
+      { latitude: a.latitude, longitude: a.longitude },
+    );
+    const kmB = haversineKm(
+      { latitude: params.latitude, longitude: params.longitude },
+      { latitude: b.latitude, longitude: b.longitude },
+    );
+    const band = (km: number) => (km <= 450 ? 0 : km <= 900 ? 1 : km <= 1600 ? 2 : 3);
+    const bandDiff = band(kmA) - band(kmB);
+    if (bandDiff !== 0) return bandDiff;
+    if (b.valueScore !== a.valueScore) return b.valueScore - a.valueScore;
+    return kmA - kmB;
+  });
 
   // Pad up to 12 results maximum.
   const results = pool.slice(0, 12);
