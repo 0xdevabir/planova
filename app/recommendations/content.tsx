@@ -289,7 +289,7 @@ export default function RecommendationsContent() {
             {stats && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
                 <StatTile
-                  accent="cyan"
+                  accent="teal"
                   label="Avg trip"
                   value={formatCurrency(stats.averageCost, currency)}
                   hint="per trip"
@@ -371,7 +371,7 @@ export default function RecommendationsContent() {
                       className="relative"
                     >
                       {hoveredId === destination.placeId && (
-                        <span className="absolute -top-2 -right-2 z-10 text-xs font-semibold bg-cyan-600 text-white rounded-full px-2 py-0.5 shadow">
+                        <span className="absolute -top-2 -right-2 z-10 text-xs font-semibold bg-teal-700 text-white rounded-full px-2 py-0.5 shadow">
                           {Math.round(destination.valueScore)}/100
                         </span>
                       )}
@@ -405,7 +405,7 @@ export default function RecommendationsContent() {
             action={
               <button
                 onClick={() => router.back()}
-                className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-full font-semibold shadow hover:shadow-lg transition-shadow"
+                className="px-6 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-full font-semibold shadow-sm transition-colors"
               >
                 Try a new search
               </button>
@@ -436,21 +436,23 @@ export default function RecommendationsContent() {
         onClose={() => setItineraryTarget(null)}
       />
 
-      <footer className="bg-slate-950 text-white py-12 border-t border-white/5 mt-20">
+      <footer className="bg-white border-t border-stone-200 mt-20 py-12">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-2">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-2 text-stone-900">
+              <svg className="w-6 h-6 text-teal-700" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" />
               </svg>
               <span className="font-semibold text-lg">Planova</span>
             </div>
-            <div className="flex items-center gap-6 text-white/70 text-sm">
-              <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
-              <a href="/terms" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Contact</a>
+            <div className="flex flex-wrap items-center justify-center gap-6 text-stone-600 text-sm">
+              <a href="/explore" className="hover:text-teal-800 transition-colors">Explore</a>
+              <a href="/guides" className="hover:text-teal-800 transition-colors">Guides</a>
+              <a href="/privacy" className="hover:text-teal-800 transition-colors">Privacy</a>
+              <a href="/terms" className="hover:text-teal-800 transition-colors">Terms</a>
+              <a href="/support" className="hover:text-teal-800 transition-colors">Support</a>
             </div>
-            <p className="text-white/50 text-sm">© 2026 Planova. All rights reserved.</p>
+            <p className="text-stone-500 text-sm">© 2026 Planova. All rights reserved.</p>
           </div>
         </div>
       </footer>
@@ -479,8 +481,8 @@ function CompareCheckbox({
       className={[
         "absolute top-3 left-3 z-10 inline-flex items-center justify-center h-8 w-8 rounded-full border transition-all",
         active
-          ? "bg-cyan-600 border-cyan-700 text-white"
-          : "bg-white/80 border-slate-200 text-slate-500 hover:border-cyan-400 hover:text-cyan-600",
+          ? "bg-teal-700 border-teal-800 text-white"
+          : "bg-white/80 border-stone-200 text-stone-500 hover:border-teal-600 hover:text-teal-800",
         disabled ? "opacity-50 cursor-not-allowed" : "",
       ].join(" ")}
     >

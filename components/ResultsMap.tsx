@@ -13,12 +13,23 @@ interface ResultsMapProps {
   onHover?: (placeId: string | null) => void;
 }
 
-const DynamicMap = dynamic(() => import("./ResultsMapClient"), {
-  loading: () => (
-    <div className="w-full h-96 rounded-3xl overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50 text-slate-600">
-      Loading map...
+function MapSkeleton() {
+  return (
+    <div
+      className="w-full h-[420px] sm:h-[480px] rounded-3xl overflow-hidden border border-stone-200 bg-stone-100 relative"
+      aria-busy="true"
+      aria-label="Loading map"
+    >
+      <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-stone-100 via-stone-50 to-teal-50/40" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <p className="text-sm font-medium text-stone-500">Loading map…</p>
+      </div>
     </div>
-  ),
+  );
+}
+
+const DynamicMap = dynamic(() => import("./ResultsMapClient"), {
+  loading: () => <MapSkeleton />,
   ssr: false,
 });
 

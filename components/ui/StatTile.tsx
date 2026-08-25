@@ -10,11 +10,12 @@ interface StatTileProps {
   hint?: ReactNode;
   trend?: "up" | "down" | "flat";
   icon?: ReactNode;
-  accent?: "cyan" | "amber" | "emerald" | "rose" | "violet" | "sky";
+  accent?: "teal" | "cyan" | "amber" | "emerald" | "rose" | "violet" | "sky";
   className?: string;
 }
 
 const ACCENT: Record<NonNullable<StatTileProps["accent"]>, string> = {
+  teal: "from-teal-100 via-teal-50 to-white text-teal-800",
   cyan: "from-cyan-100 via-cyan-50 to-white text-cyan-700",
   amber: "from-amber-100 via-amber-50 to-white text-amber-700",
   emerald: "from-emerald-100 via-emerald-50 to-white text-emerald-700",
@@ -23,7 +24,7 @@ const ACCENT: Record<NonNullable<StatTileProps["accent"]>, string> = {
   sky: "from-sky-100 via-sky-50 to-white text-sky-700",
 };
 
-export function StatTile({ label, value, hint, trend, icon, accent = "cyan", className = "" }: StatTileProps) {
+export function StatTile({ label, value, hint, trend, icon, accent = "teal", className = "" }: StatTileProps) {
   const TrendIcon =
     trend === "up" ? "▲" : trend === "down" ? "▼" : "→";
   const trendColor =

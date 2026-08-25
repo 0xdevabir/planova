@@ -285,3 +285,18 @@ h1, h2, h3, .font-display {
     transform: translate3d(10px, 16px, 0) scale(1.04);
   }
 }
+
+/* Leaflet markers + single-world map chrome */
+.planova-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.planova-results-map.leaflet-container {
+  font: inherit;
+  background: #f5f5f4;
+}
+
+.planova-results-map .leaflet-tile-pane {
+  filter: saturate(0.92) contrast(1.02);
+}
