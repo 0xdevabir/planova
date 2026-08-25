@@ -7,6 +7,8 @@ import Navbar from "@/components/Navbar";
 import { loadDestination, storeDestination } from "@/lib/utils/destinationCache";
 import { findById } from "@/lib/data/destinations";
 import type { DestinationResult } from "@/lib/types";
+import ResultsMap from "@/components/ResultsMap";
+import { formatCurrency } from "@/lib/utils/money";
 import { FaArrowLeft, FaMapMarkerAlt } from "react-icons/fa";
 
 type TabId = "overview" | "plan" | "stay" | "eat";
@@ -204,28 +206,116 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
 
         <section className="frosted-surface rounded-2xl p-6 sm:p-8 min-h-[280px]">
           {tab === "overview" && (
-            <div className="space-y-2 text-slate-300">
-              <h2 className="text-lg font-semibold text-white">Overview</h2>
-              <p className="text-sm text-slate-400">
-                Cost breakdown, weather, and map details arrive in the next update. Use Stay and Eat
-                tabs once hotel and restaurant lists are live.
-              </p>
-              <dl className="grid sm:grid-cols-2 gap-4 pt-4">
+            <div className="space-y-8 text-slate-300">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Trip overview</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  Estimated costs, conditions, and location for this stay.
+                </p>
+              </div>
+
+              <dl className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="rounded-xl bg-black/30 border border-white/10 p-4">
                   <dt className="text-xs text-slate-400 uppercase tracking-wide">Est. total</dt>
-                  <dd className="text-2xl font-semibold text-white mt-1">
+                  <dd className="text-xl font-semibold text-white mt-1">
                     {destination.totalEstimatedCost > 0
-                      ? `$${destination.totalEstimatedCost.toLocaleString()}`
+                      ? formatCurrency(destination.totalEstimatedCost, tripContext.currency)
                       : "—"}
                   </dd>
                 </div>
                 <div className="rounded-xl bg-black/30 border border-white/10 p-4">
                   <dt className="text-xs text-slate-400 uppercase tracking-wide">Duration</dt>
-                  <dd className="text-2xl font-semibold text-white mt-1">
+                  <dd className="text-xl font-semibold text-white mt-1">
                     {destination.durationDays} day{destination.durationDays === 1 ? "" : "s"}
                   </dd>
                 </div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-4">
+                  <dt className="text-xs text-slate-400 uppercase tracking-wide">Travelers</dt>
+                  <dd className="text-xl font-semibold text-white mt-1">{tripContext.travelers}</dd>
+                </div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-4">
+                  <dt className="text-xs text-slate-400 uppercase tracking-wide">Rating</dt>
+                  <dd className="text-xl font-semibold text-white mt-1">
+                    {destination.rating ? `${destination.rating.toFixed(1)} / 5` : "—"}
+                  </dd>
+                </div>
               </dl>
+
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-3">Cost breakdown</h3>
+                <ul className="space-y-2">
+                  {[
+                    ["Flights", destination.costBreakdown.flights],
+                    ["Stay", destination.costBreakdown.accommodation],
+                    ["Food", destination.costBreakdown.food],
+                    ["Activities", destination.costBreakdown.activities],
+                  ].map(([label, amount]) => (
+                    <li
+                      key={label as string}
+                      className="flex items-center justify-between rounded-lg bg-black/25 border border-white/10 px-4 py-2.5 text-sm"
+                    >
+                      <span className="text-slate-400">{label as string}</span>
+                      <span className="font-medium text-slate-100">
+                        {formatCurrency(amount as number, tripContext.currency)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {destination.weather && (
+                <div>
+                  <h3 className="text-sm font-semibold text-white mb-3">
+                    Weather {destination.weather.emoji || ""}
+                  </h3>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
+                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                      <div className="text-slate-400 text-xs">Condition</div>
+                      <div className="mt-1 text-white">{destination.weather.condition}</div>
+                    </div>
+                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                      <div className="text-slate-400 text-xs">Temperature</div>
+                      <div className="mt-1 text-white">{destination.weather.temperature}°C</div>
+                    </div>
+                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                      <div className="text-slate-400 text-xs">Humidity</div>
+                      <div className="mt-1 text-white">{destination.weather.humidity}%</div>
+                    </div>
+                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
+                      <div className="text-slate-400 text-xs">Travel score</div>
+                      <div className="mt-1 text-white">
+                        {typeof destination.weather.travelScore === "number"
+                          ? `${destination.weather.travelScore}/100`
+                          : "—"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {typeof destination.safetyRating === "number" && (
+                <div>
+                  <h3 className="text-sm font-semibold text-white mb-2">Safety</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"
+                        style={{ width: `${(destination.safetyRating / 10) * 100}%` }}
+                      />
+                    </div>
+                    <span className="text-sm font-semibold text-white">
+                      {destination.safetyRating.toFixed(1)}/10
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-3">Map</h3>
+                <div className="rounded-2xl overflow-hidden border border-white/10 h-72">
+                  <ResultsMap destinations={[destination]} currency={tripContext.currency} />
+                </div>
+              </div>
             </div>
           )}
           {tab === "plan" && (
