@@ -6,7 +6,6 @@ import ToastProvider from "@/components/ToastProvider";
 const display = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  axes: ["SOFT", "WONK", "opsz"],
 });
 
 const sans = Source_Sans_3({
