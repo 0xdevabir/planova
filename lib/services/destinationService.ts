@@ -24,7 +24,7 @@ export async function getNearbyDestinations(
 ): Promise<Destination[]> {
   void radius; // catalog/OSM results are global; radius is conceptual
   const cacheKey = generateCacheKey(
-    "destinations:v3",
+    "destinations:v4",
     (Math.round(latitude * 100) / 100).toString(),
     (Math.round(longitude * 100) / 100).toString(),
     (query || "").toLowerCase(),
@@ -52,7 +52,7 @@ export async function getNearbyDestinations(
           description: place.description || "Popular destination",
           rating: place.rating || 4.3,
           reviews: place.reviews || 0,
-          // vibes are inferred per destination in the UI overlay; keep type simple
+          vibes: Array.isArray(place.vibes) ? place.vibes : undefined,
         }));
         setCached(cacheKey, destinations, 24 * 60 * 60 * 1000);
         return destinations;

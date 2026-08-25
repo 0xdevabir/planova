@@ -9,13 +9,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import {
-  CATALOG,
   searchCatalog,
   nearestCatalog,
   toDestination,
+  findById,
   type CatalogDestination,
 } from "@/lib/data/destinations";
-import type { Destination } from "@/lib/types";
+import type { Destination, TripVibe } from "@/lib/types";
 import { haversineKm } from "@/lib/utils/geo";
 
 interface RawPlace {
@@ -27,7 +27,19 @@ interface RawPlace {
   description?: string;
   rating?: number;
   reviews?: number;
+  vibes?: TripVibe[];
   source: "catalog" | "osm" | "google";
+}
+
+function resolveVibes(p: RawPlace): TripVibe[] | undefined {
+  if (p.vibes && p.vibes.length > 0) return p.vibes;
+  const byId = findById(p.placeId);
+  if (byId?.vibes?.length) return byId.vibes;
+  const byName = searchCatalog(p.name, 1)[0];
+  if (byName && byName.name.toLowerCase() === p.name.toLowerCase()) {
+    return byName.vibes;
+  }
+  return undefined;
 }
 
 function dedupe(places: RawPlace[]): RawPlace[] {
@@ -52,7 +64,7 @@ function toResponse(p: RawPlace): Destination {
     description: p.description,
     rating: p.rating,
     reviews: p.reviews,
-    vibes: undefined,
+    vibes: resolveVibes(p),
   };
 }
 
@@ -156,6 +168,7 @@ function catalogToRaw(c: CatalogDestination): RawPlace {
     description: c.summary,
     rating: c.rating,
     reviews: c.reviews,
+    vibes: c.vibes,
     source: "catalog",
   };
 }
