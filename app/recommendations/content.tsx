@@ -308,7 +308,13 @@ export default function RecommendationsContent() {
 
           {hasResults && (
             <div className="rounded-3xl overflow-hidden border border-white/60 hover-lift">
-              <ResultsMap destinations={filteredResults} currency={currency} />
+              <ResultsMap
+                destinations={filteredResults}
+                currency={currency}
+                highlightedId={hoveredId}
+                onHover={setHoveredId}
+                onOpen={handleOpenDestination}
+              />
             </div>
           )}
 

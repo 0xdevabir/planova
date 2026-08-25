@@ -8,9 +8,10 @@ import { formatCurrency } from "@/lib/utils/money";
 interface MapPopupProps {
   destination: DestinationResult;
   currency: string;
+  onOpen?: () => void;
 }
 
-export function MapPopup({ destination, currency }: MapPopupProps) {
+export function MapPopup({ destination, currency, onOpen }: MapPopupProps) {
   const vibe = destination.vibes?.[0] ? VIBE_BY_ID[destination.vibes[0]] : null;
   const gradient = vibe?.gradient ?? "from-cyan-500 to-blue-500";
   return (
@@ -37,14 +38,25 @@ export function MapPopup({ destination, currency }: MapPopupProps) {
           </span>
         </div>
       )}
-      <a
-        href={`https://www.openstreetmap.org/?mlat=${destination.latitude}&mlon=${destination.longitude}#map=12/${destination.latitude}/${destination.longitude}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block text-center text-xs font-semibold bg-cyan-600 text-white rounded-full px-3 py-1.5 hover:bg-cyan-700"
-      >
-        Open in OSM
-      </a>
+      <div className="grid gap-1.5">
+        {onOpen && (
+          <button
+            type="button"
+            onClick={onOpen}
+            className="block w-full text-center text-xs font-semibold bg-cyan-600 text-white rounded-full px-3 py-1.5 hover:bg-cyan-700"
+          >
+            Open destination
+          </button>
+        )}
+        <a
+          href={`https://www.openstreetmap.org/?mlat=${destination.latitude}&mlon=${destination.longitude}#map=12/${destination.latitude}/${destination.longitude}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-center text-xs font-semibold bg-slate-100 text-slate-700 rounded-full px-3 py-1.5 hover:bg-slate-200"
+        >
+          Open in OSM
+        </a>
+      </div>
     </div>
   );
 }

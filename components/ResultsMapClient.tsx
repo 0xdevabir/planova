@@ -14,6 +14,9 @@ import MapPopup from "./MapPopup";
 interface ResultsMapClientProps {
   destinations: DestinationResult[];
   currency?: string;
+  highlightedId?: string | null;
+  onOpen?: (destination: DestinationResult) => void;
+  onHover?: (placeId: string | null) => void;
 }
 
 function getMarkerIcon(dest: DestinationResult, highlighted: boolean): L.DivIcon {
@@ -75,7 +78,13 @@ function MapBounds({ destinations }: { destinations: DestinationResult[] }) {
   return null;
 }
 
-export default function ResultsMapClient({ destinations, currency = "USD" }: ResultsMapClientProps) {
+export default function ResultsMapClient({
+  destinations,
+  currency = "USD",
+  highlightedId = null,
+  onOpen,
+  onHover,
+}: ResultsMapClientProps) {
   if (!destinations || destinations.length === 0) {
     return (
       <div className="w-full h-96 rounded-3xl overflow-hidden border border-slate-200 flex items-center justify-center bg-slate-50 text-slate-600">
@@ -106,11 +115,19 @@ export default function ResultsMapClient({ destinations, currency = "USD" }: Res
           <Marker
             key={dest.placeId || index}
             position={[dest.latitude, dest.longitude]}
-            icon={getMarkerIcon(dest, false)}
+            icon={getMarkerIcon(dest, highlightedId === dest.placeId)}
             title={dest.name}
+            eventHandlers={{
+              mouseover: () => onHover?.(dest.placeId),
+              mouseout: () => onHover?.(null),
+            }}
           >
             <Popup>
-              <MapPopup destination={dest} currency={currency} />
+              <MapPopup
+                destination={dest}
+                currency={currency}
+                onOpen={onOpen ? () => onOpen(dest) : undefined}
+              />
             </Popup>
           </Marker>
         ))}
