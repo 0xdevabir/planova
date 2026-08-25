@@ -15,14 +15,17 @@ import { computeBudget } from "./budgetCalculator";
 import { VIBE_BY_ID } from "@/lib/data/vibes";
 import { getCached, setCached, generateCacheKey } from "@/lib/utils/cache";
 
-const ORIGIN_NAME = "New York";
-const ORIGIN_COORDS = { latitude: 40.6413, longitude: -73.7781 };
-
 export async function searchDestinations(
   params: SearchParams,
 ): Promise<SearchResponse> {
+  const origin = {
+    name: params.destination || "Selected Location",
+    latitude: params.latitude,
+    longitude: params.longitude,
+  };
+
   const cacheKey = generateCacheKey(
-    "search:v4",
+    "search:v5",
     (Math.round(params.latitude * 100) / 100).toString(),
     (Math.round(params.longitude * 100) / 100).toString(),
     params.budgetMin.toString(),
@@ -59,11 +62,7 @@ export async function searchDestinations(
       try {
         const budget = await computeBudget({
           destination: dest,
-          origin: {
-            name: ORIGIN_NAME,
-            latitude: ORIGIN_COORDS.latitude,
-            longitude: ORIGIN_COORDS.longitude,
-          },
+          origin,
           startDate: params.startDate,
           endDate: params.endDate,
           travelers: params.travelers,
@@ -184,3 +183,4 @@ export async function searchDestinations(
   }
   return response;
 }
+
