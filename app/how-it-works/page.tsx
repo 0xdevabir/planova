@@ -31,7 +31,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
         theme="indigo"
@@ -106,7 +106,7 @@ export default function HowItWorks() {
           </div>
 
           <div className="flex flex-wrap gap-3 text-sm">
-            <Link href="/features" className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl">
+            <Link href="/features" className="px-6 py-3 rounded-full bg-gradient-to-r from-teal-700 to-teal-600 text-white font-semibold hover:from-teal-800 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl">
               Explore features
             </Link>
             <Link href="/support" className="px-6 py-3 rounded-full border border-slate-300 text-slate-900 font-semibold hover:border-cyan-600 hover:bg-cyan-50 transition-colors">

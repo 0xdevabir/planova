@@ -8,7 +8,7 @@ import { Card, SectionHeader } from "@/components/ui";
 
 export default function AppInfoPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
         theme="violet"
@@ -27,7 +27,7 @@ export default function AppInfoPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               href="/"
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-teal-700 to-teal-600 text-white font-bold hover:from-teal-800 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl"
             >
               Plan on the web
             </Link>

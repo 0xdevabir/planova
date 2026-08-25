@@ -41,11 +41,11 @@ const THEMES: Record<HeroTheme, ThemeSpec> = {
   home: {
     base: "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950",
     veil:
-      "radial-gradient(circle at 20% 20%, rgba(6, 182, 212, 0.25), transparent 45%), radial-gradient(circle at 80% 10%, rgba(99, 102, 241, 0.3), transparent 50%), radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.18), transparent 55%)",
+      "radial-gradient(circle at 20% 20%, rgba(15, 118, 110, 0.2), transparent 45%), radial-gradient(circle at 80% 10%, rgba(120, 113, 108, 0.15), transparent 50%)",
     orbs: [
-      { className: "w-96 h-96 bg-cyan-400/30 -left-10 top-10", style: {} },
+      { className: "w-96 h-96 bg-teal-600/25 -left-10 top-10", style: {} },
       {
-        className: "w-80 h-80 bg-indigo-500/25 right-10 bottom-10",
+        className: "w-80 h-80 bg-teal-700/20 right-10 bottom-10",
         style: { animationDelay: "-3s" },
       },
       {
@@ -129,7 +129,7 @@ const THEMES: Record<HeroTheme, ThemeSpec> = {
         style: { animationDelay: "-3s" },
       },
       {
-        className: "w-72 h-72 bg-indigo-500/25 left-0 bottom-0",
+        className: "w-72 h-72 bg-teal-700/20 left-0 bottom-0",
         style: { animationDelay: "-6s" },
       },
     ],

@@ -10,8 +10,8 @@ export default async function DestinationDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#05060a]">
-          <div className="w-10 h-10 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+        <div className="min-h-screen flex items-center justify-center bg-[#f7f6f3]">
+          <div className="w-10 h-10 border-2 border-teal-200 border-t-teal-700 rounded-full animate-spin" />
         </div>
       }
     >

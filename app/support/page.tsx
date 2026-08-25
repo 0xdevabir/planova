@@ -7,7 +7,7 @@ import { Card, SectionHeader, Badge } from "@/components/ui";
 
 export default function SupportPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
         theme="mint"
@@ -23,7 +23,7 @@ export default function SupportPage() {
         description="Quick answers, helpful docs, and a friendly inbox — pick whichever channel works for you."
         action={
           <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/" className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition-colors">
+            <Link href="/" className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-teal-700 text-white font-semibold hover:bg-teal-800 transition-colors">
               Back to planner
             </Link>
           </div>

@@ -46,7 +46,7 @@ const voices = [
 
 export default function TestimonialsPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
         theme="sunset"
@@ -109,7 +109,7 @@ export default function TestimonialsPage() {
               <p className="text-slate-700">Start planning your next adventure with clarity and confidence.</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link href="/" className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl">
+              <Link href="/" className="px-6 py-3 rounded-full bg-gradient-to-r from-teal-700 to-teal-600 text-white font-bold hover:from-teal-800 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl">
                 Get started free
               </Link>
               <Link href="/how-it-works" className="px-6 py-3 rounded-full border border-slate-300 text-slate-900 font-bold hover:border-cyan-600 hover:bg-white transition-colors">

@@ -52,7 +52,7 @@ const featureSets = [
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
       <HeroSection
         theme="cyan"
@@ -69,7 +69,7 @@ export default function FeaturesPage() {
         action={
           <Link
             href="/"
-            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-cyan-500 text-slate-950 font-semibold hover:bg-cyan-400 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-teal-700 text-white font-semibold hover:bg-teal-800 transition-colors"
           >
             Start planning
           </Link>
@@ -109,7 +109,7 @@ export default function FeaturesPage() {
           <div className="flex flex-wrap gap-3 text-sm pt-6">
             <Link
               href="/how-it-works"
-              className="px-6 py-3 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-semibold hover:from-cyan-700 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl"
+              className="px-6 py-3 rounded-full bg-gradient-to-r from-teal-700 to-teal-600 text-white font-semibold hover:from-teal-800 hover:to-teal-700 transition-all shadow-lg hover:shadow-xl"
             >
               See how it works
             </Link>

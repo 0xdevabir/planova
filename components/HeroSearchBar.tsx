@@ -358,7 +358,7 @@ export default function HeroSearchBar({
                     className="w-full px-5 py-3 text-left hover:bg-cyan-50 transition-colors flex items-center gap-3 border-b border-gray-100 last:border-b-0"
                   >
                     <svg
-                      className="w-4 h-4 text-cyan-600 shrink-0"
+                      className="w-4 h-4 text-teal-700 shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -388,7 +388,7 @@ export default function HeroSearchBar({
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white px-5 sm:px-7 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-60 shadow-[0_8px_24px_rgba(6,182,212,0.35)] whitespace-nowrap"
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 text-white px-5 sm:px-7 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-60 shadow-[0_8px_24px_rgba(15,118,110,0.28)] whitespace-nowrap"
           >
             <FaSearch className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">{loading ? "Searching…" : "Search"}</span>
@@ -409,7 +409,7 @@ export default function HeroSearchBar({
               }}
               className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/85 hover:bg-white rounded-2xl border border-white/60 text-left text-gray-900 transition-all"
             >
-              <FaCalendarAlt className="w-4 h-4 text-cyan-600 shrink-0" />
+              <FaCalendarAlt className="w-4 h-4 text-teal-700 shrink-0" />
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
                   Dates
@@ -438,7 +438,7 @@ export default function HeroSearchBar({
                           setEndDate(next.toISOString().split("T")[0]);
                         }
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-teal-700"
                     />
                   </label>
                   <label className="block">
@@ -450,7 +450,7 @@ export default function HeroSearchBar({
                       value={endDate}
                       min={startDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-cyan-500 focus:border-teal-700"
                     />
                   </label>
                 </div>
@@ -470,7 +470,7 @@ export default function HeroSearchBar({
               }}
               className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/85 hover:bg-white rounded-2xl border border-white/60 text-left text-gray-900 transition-all"
             >
-              <FaDollarSign className="w-4 h-4 text-cyan-600 shrink-0" />
+              <FaDollarSign className="w-4 h-4 text-teal-700 shrink-0" />
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
                   Budget ({currency})
@@ -496,7 +496,7 @@ export default function HeroSearchBar({
                         setBudgetMin(800);
                         setBudgetMax(5000);
                       }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-cyan-500 focus:border-teal-700"
                     >
                       {CURRENCIES.map((c) => (
                         <option key={c.code} value={c.code}>
@@ -564,7 +564,7 @@ export default function HeroSearchBar({
               }}
               className="w-full flex items-center gap-2 px-4 py-2.5 bg-white/85 hover:bg-white rounded-2xl border border-white/60 text-left text-gray-900 transition-all"
             >
-              <FaUser className="w-4 h-4 text-cyan-600 shrink-0" />
+              <FaUser className="w-4 h-4 text-teal-700 shrink-0" />
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
                   Travelers
@@ -582,7 +582,7 @@ export default function HeroSearchBar({
                     <button
                       type="button"
                       onClick={() => setTravelers(Math.max(1, travelers - 1))}
-                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-700 hover:border-cyan-500 hover:text-cyan-600 transition-colors font-bold"
+                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-700 hover:border-teal-700 hover:text-teal-700 transition-colors font-bold"
                       aria-label="Decrease travelers"
                     >
                       −
@@ -593,7 +593,7 @@ export default function HeroSearchBar({
                     <button
                       type="button"
                       onClick={() => setTravelers(Math.min(20, travelers + 1))}
-                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-700 hover:border-cyan-500 hover:text-cyan-600 transition-colors font-bold"
+                      className="w-9 h-9 rounded-full border-2 border-gray-300 flex items-center justify-center text-gray-700 hover:border-teal-700 hover:text-teal-700 transition-colors font-bold"
                       aria-label="Increase travelers"
                     >
                       +
@@ -616,11 +616,11 @@ export default function HeroSearchBar({
               }}
               className={`w-full flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-left transition-all ${
                 vibes.length > 0
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 border-cyan-500 text-white shadow-md"
+                  ? "bg-gradient-to-r from-teal-700 to-teal-600 border-teal-700 text-white shadow-md"
                   : "bg-white/85 hover:bg-white border-white/60 text-gray-900"
               }`}
             >
-              <FaRegSmile className={`w-4 h-4 shrink-0 ${vibes.length > 0 ? "text-white" : "text-cyan-600"}`} />
+              <FaRegSmile className={`w-4 h-4 shrink-0 ${vibes.length > 0 ? "text-white" : "text-teal-700"}`} />
               <div className="flex flex-col flex-1 min-w-0">
                 <span
                   className={`text-[10px] uppercase tracking-wider font-bold ${

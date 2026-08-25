@@ -1,13 +1,11 @@
-@import "tailwindcss";
-
 :root {
-  --background: #05060a;
-  --foreground: #e8edf5;
-  --accent: #5be1ff;
-  --accent-soft: rgba(91, 225, 255, 0.14);
-  --muted: #8a93a5;
-  --surface: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.12);
+  --background: #f7f6f3;
+  --foreground: #1c1917;
+  --accent: #0f766e;
+  --accent-soft: rgba(15, 118, 110, 0.1);
+  --muted: #78716c;
+  --surface: #ffffff;
+  --border: rgba(28, 25, 23, 0.1);
   --font-display: var(--font-display), "Fraunces", Georgia, serif;
   --font-body: var(--font-sans-body), "Source Sans 3", system-ui, sans-serif;
 }
@@ -19,13 +17,6 @@
   --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #04050a;
-    --foreground: #e5e7eb;
-  }
-}
-
 * {
   box-sizing: border-box;
 }
@@ -34,12 +25,11 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Custom utility for full screen padding */
 @layer utilities {
   .pt-screen {
     padding-top: 100vh;
   }
-  
+
   .mt-screen {
     margin-top: 100vh;
   }
@@ -47,9 +37,9 @@ html {
 
 body {
   background:
-    radial-gradient(circle at 18% 12%, rgba(91, 225, 255, 0.1), transparent 28%),
-    radial-gradient(circle at 88% 8%, rgba(14, 116, 144, 0.14), transparent 32%),
-    linear-gradient(180deg, #05060a 0%, #071018 55%, #05060a 100%);
+    radial-gradient(ellipse at 0% 0%, rgba(15, 118, 110, 0.06), transparent 42%),
+    radial-gradient(ellipse at 100% 0%, rgba(180, 140, 90, 0.05), transparent 40%),
+    linear-gradient(180deg, #f7f6f3 0%, #f3f1ec 50%, #f7f6f3 100%);
   color: var(--foreground);
   font-family: var(--font-body);
   min-height: 100vh;
@@ -58,45 +48,34 @@ body {
 h1, h2, h3, .font-display {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
+  color: #1c1917;
 }
 
 .page-atmosphere {
   position: relative;
   isolation: isolate;
+  background: #f7f6f3;
+  color: #1c1917;
 }
 
 .page-atmosphere::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background-image: url("/heroBg.jpg");
-  background-size: cover;
-  background-position: center;
-  opacity: 0.28;
-  filter: saturate(0.85) brightness(0.55);
+  content: none;
 }
 
 .page-atmosphere::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(5, 6, 10, 0.72) 0%, rgba(5, 6, 10, 0.88) 45%, #05060a 100%),
-    radial-gradient(circle at 20% 10%, rgba(91, 225, 255, 0.08), transparent 35%);
+  content: none;
 }
 
 ::selection {
-  background: rgba(91, 225, 255, 0.2);
-  color: #e0f9ff;
+  background: rgba(15, 118, 110, 0.18);
+  color: #1c1917;
 }
 
 .frosted-surface {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(16px);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px rgba(28, 25, 23, 0.06);
+  backdrop-filter: none;
 }
 
 .glass-card {
@@ -107,10 +86,10 @@ h1, h2, h3, .font-display {
 }
 
 .gradient-text {
-  background: linear-gradient(120deg, #67e8f9 0%, #22d3ee 45%, #67e8f9 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #0f766e;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
 }
 
 .shimmer {

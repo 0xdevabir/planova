@@ -245,18 +245,18 @@ export default function RecommendationsContent() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <button
             onClick={() => router.back()}
-            className="text-cyan-300 hover:text-cyan-200 font-semibold flex items-center gap-2 text-sm"
+            className="text-teal-800 hover:text-teal-900 font-semibold flex items-center gap-2 text-sm"
           >
             <FaArrowLeft className="text-xs" /> Back to search
           </button>
         </div>
 
-        <div className="sticky top-20 z-30 frosted-surface rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-white/10">
-          <div className="text-sm text-slate-200">
-            <span className="text-slate-400">Trip from</span>{" "}
-            <span className="font-medium text-white">{searchResults?.query.destination || "—"}</span>
+        <div className="sticky top-20 z-30 frosted-surface rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-sm text-stone-700">
+            <span className="text-stone-500">Trip from</span>{" "}
+            <span className="font-medium text-stone-900">{searchResults?.query.destination || "—"}</span>
             {searchResults?.query.startDate && searchResults?.query.endDate && (
-              <span className="text-slate-400">
+              <span className="text-stone-500">
                 {" "}
                 · {new Date(searchResults.query.startDate).toISOString().slice(0, 10)} →{" "}
                 {new Date(searchResults.query.endDate).toISOString().slice(0, 10)}
@@ -266,7 +266,7 @@ export default function RecommendationsContent() {
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-cyan-500/20 text-cyan-100 border border-cyan-400/30 hover:bg-cyan-500/30"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-teal-700 text-white hover:bg-teal-800"
           >
             <FaSearch className="text-xs" /> Refine this trip
           </button>

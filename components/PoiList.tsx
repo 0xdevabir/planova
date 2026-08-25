@@ -33,7 +33,7 @@ export default function PoiList({ items, loading, emptyMessage, kindLabel }: Poi
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="h-20 rounded-xl bg-white/5 border border-white/10 animate-pulse"
+            className="h-20 rounded-xl bg-stone-100 border border-stone-200 animate-pulse"
           />
         ))}
       </div>
@@ -42,7 +42,7 @@ export default function PoiList({ items, loading, emptyMessage, kindLabel }: Poi
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-white/15 bg-black/20 px-4 py-8 text-center text-sm text-slate-400">
+      <div className="rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 py-8 text-center text-sm text-stone-500">
         {emptyMessage}
       </div>
     );
@@ -53,11 +53,11 @@ export default function PoiList({ items, loading, emptyMessage, kindLabel }: Poi
       {items.map((poi) => (
         <li
           key={poi.id}
-          className="rounded-xl border border-white/10 bg-black/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+          className="rounded-xl border border-stone-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
         >
           <div className="min-w-0 space-y-1">
-            <div className="font-medium text-white truncate">{poi.name}</div>
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-400">
+            <div className="font-medium text-stone-900 truncate">{poi.name}</div>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-stone-500">
               {typeof poi.distanceKm === "number" && <span>{poi.distanceKm} km away</span>}
               {typeof poi.stars === "number" && <span>{poi.stars}★</span>}
               {typeof poi.rating === "number" && !poi.stars && (
@@ -70,7 +70,7 @@ export default function PoiList({ items, loading, emptyMessage, kindLabel }: Poi
             href={affiliateUrl(poi)}
             target="_blank"
             rel="noopener noreferrer sponsored"
-            className="shrink-0 inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium bg-cyan-500/15 text-cyan-200 border border-cyan-400/25 hover:bg-cyan-500/25 transition-colors"
+            className="shrink-0 inline-flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100 transition-colors"
           >
             {poi.website ? "Visit site" : "View on map"}
           </a>

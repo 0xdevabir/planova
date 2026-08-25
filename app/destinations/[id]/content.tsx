@@ -197,24 +197,24 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#05060a]">
-        <div className="w-10 h-10 border-2 border-cyan-400/30 border-t-cyan-400 rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#f7f6f3]">
+        <div className="w-10 h-10 border-2 border-teal-200 border-t-teal-700 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!destination) {
     return (
-      <div className="min-h-screen bg-[#05060a] text-slate-100">
+      <div className="min-h-screen bg-[#f7f6f3] text-stone-900">
         <Navbar />
         <div className="max-w-xl mx-auto px-4 pt-28 text-center space-y-4">
           <h1 className="text-2xl font-semibold">Destination not found</h1>
-          <p className="text-slate-400">
+          <p className="text-stone-500">
             We couldn&apos;t load this place. Head back to recommendations and try again.
           </p>
           <Link
             href="/recommendations"
-            className="inline-flex items-center gap-2 text-cyan-300 hover:text-cyan-200"
+            className="inline-flex items-center gap-2 text-teal-700 hover:text-teal-700"
           >
             <FaArrowLeft className="text-xs" /> Back to results
           </Link>
@@ -224,55 +224,43 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
   }
 
   return (
-    <div className="min-h-screen relative text-slate-100">
-      <div
-        className="fixed inset-0 -z-10"
-        style={{
-          backgroundImage: "url('/heroBg.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute inset-0 bg-[#05060a]/85" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-[#05060a]" />
-      </div>
-
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-4 pt-24 pb-16 space-y-6">
-        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-400">
+      <main className="max-w-5xl mx-auto px-4 pt-24 pb-16 space-y-6 relative z-10">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-stone-500">
           <button
             type="button"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2 hover:text-cyan-300 transition-colors"
+            className="inline-flex items-center gap-2 hover:text-teal-800 transition-colors"
           >
             <FaArrowLeft className="text-xs" /> Back
           </button>
           <span aria-hidden>/</span>
-          <span className="text-slate-200">{destination.name}</span>
+          <span className="text-stone-800">{destination.name}</span>
         </div>
 
         <header className="frosted-surface rounded-2xl p-6 sm:p-8 space-y-3">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-3xl sm:text-4xl font-semibold text-white tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
                 {destination.name}
               </h1>
               {destination.address && (
-                <p className="mt-2 flex items-center gap-2 text-slate-300">
-                  <FaMapMarkerAlt className="text-cyan-400 text-sm" />
+                <p className="mt-2 flex items-center gap-2 text-stone-600">
+                  <FaMapMarkerAlt className="text-teal-700 text-sm" />
                   {destination.address}
                 </p>
               )}
               {destination.description && (
-                <p className="mt-3 text-slate-300 max-w-2xl leading-relaxed">
+                <p className="mt-3 text-stone-600 max-w-2xl leading-relaxed">
                   {destination.description}
                 </p>
               )}
             </div>
             <div className="text-right">
-              <div className="text-xs uppercase tracking-wider text-slate-400">Value score</div>
-              <div className="text-3xl font-semibold text-cyan-300">{destination.valueScore}</div>
+              <div className="text-xs uppercase tracking-wider text-stone-500">Value score</div>
+              <div className="text-3xl font-semibold text-teal-800">{destination.valueScore}</div>
             </div>
           </div>
 
@@ -281,7 +269,7 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
               {destination.vibes.map((v) => (
                 <span
                   key={v}
-                  className="px-2.5 py-1 rounded-full text-xs bg-white/10 border border-white/15 text-slate-200 capitalize"
+                  className="px-2.5 py-1 rounded-full text-xs bg-stone-100 border border-stone-200 text-stone-700 capitalize"
                 >
                   {v}
                 </span>
@@ -290,7 +278,7 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
           )}
 
           {(tripContext.startDate || tripContext.origin) && (
-            <p className="text-xs text-slate-400 pt-2">
+            <p className="text-xs text-stone-500 pt-2">
               {tripContext.origin ? `From ${tripContext.origin}` : "Trip"}
               {tripContext.startDate && tripContext.endDate
                 ? ` · ${tripContext.startDate} → ${tripContext.endDate}`
@@ -301,7 +289,7 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
         </header>
 
         <nav
-          className="flex gap-1 p-1 rounded-xl bg-black/40 border border-white/10 overflow-x-auto"
+          className="flex gap-1 p-1 rounded-xl bg-white border border-stone-200 overflow-x-auto"
           aria-label="Destination sections"
         >
           {TABS.map((t) => (
@@ -312,8 +300,8 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
               aria-current={tab === t.id ? "page" : undefined}
               className={`flex-1 min-w-[4.5rem] px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 tab === t.id
-                  ? "bg-cyan-500/20 text-cyan-200 border border-cyan-400/30"
-                  : "text-slate-400 hover:text-slate-200 border border-transparent"
+                  ? "bg-teal-700 text-white"
+                  : "text-stone-500 hover:text-stone-800 border border-transparent"
               }`}
             >
               {t.label}
@@ -323,43 +311,43 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
 
         <section className="frosted-surface rounded-2xl p-6 sm:p-8 min-h-[280px]">
           {tab === "overview" && (
-            <div className="space-y-8 text-slate-300">
+            <div className="space-y-8 text-stone-700">
               <div>
-                <h2 className="text-lg font-semibold text-white">Trip overview</h2>
-                <p className="text-sm text-slate-400 mt-1">
+                <h2 className="text-lg font-semibold text-stone-900">Trip overview</h2>
+                <p className="text-sm text-stone-500 mt-1">
                   Estimated costs, conditions, and location for this stay.
                 </p>
               </div>
 
               <dl className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="rounded-xl bg-black/30 border border-white/10 p-4">
-                  <dt className="text-xs text-slate-400 uppercase tracking-wide">Est. total</dt>
-                  <dd className="text-xl font-semibold text-white mt-1">
+                <div className="rounded-xl bg-stone-50 border border-stone-200 p-4">
+                  <dt className="text-xs text-stone-500 uppercase tracking-wide">Est. total</dt>
+                  <dd className="text-xl font-semibold text-stone-900 mt-1">
                     {destination.totalEstimatedCost > 0
                       ? formatCurrency(destination.totalEstimatedCost, tripContext.currency)
                       : "—"}
                   </dd>
                 </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-4">
-                  <dt className="text-xs text-slate-400 uppercase tracking-wide">Duration</dt>
-                  <dd className="text-xl font-semibold text-white mt-1">
+                <div className="rounded-xl bg-stone-50 border border-stone-200 p-4">
+                  <dt className="text-xs text-stone-500 uppercase tracking-wide">Duration</dt>
+                  <dd className="text-xl font-semibold text-stone-900 mt-1">
                     {destination.durationDays} day{destination.durationDays === 1 ? "" : "s"}
                   </dd>
                 </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-4">
-                  <dt className="text-xs text-slate-400 uppercase tracking-wide">Travelers</dt>
-                  <dd className="text-xl font-semibold text-white mt-1">{tripContext.travelers}</dd>
+                <div className="rounded-xl bg-stone-50 border border-stone-200 p-4">
+                  <dt className="text-xs text-stone-500 uppercase tracking-wide">Travelers</dt>
+                  <dd className="text-xl font-semibold text-stone-900 mt-1">{tripContext.travelers}</dd>
                 </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-4">
-                  <dt className="text-xs text-slate-400 uppercase tracking-wide">Rating</dt>
-                  <dd className="text-xl font-semibold text-white mt-1">
+                <div className="rounded-xl bg-stone-50 border border-stone-200 p-4">
+                  <dt className="text-xs text-stone-500 uppercase tracking-wide">Rating</dt>
+                  <dd className="text-xl font-semibold text-stone-900 mt-1">
                     {destination.rating ? `${destination.rating.toFixed(1)} / 5` : "—"}
                   </dd>
                 </div>
               </dl>
 
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Cost breakdown</h3>
+                <h3 className="text-sm font-semibold text-stone-900 mb-3">Cost breakdown</h3>
                 <ul className="space-y-2">
                   {[
                     ["Flights", destination.costBreakdown.flights],
@@ -369,10 +357,10 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
                   ].map(([label, amount]) => (
                     <li
                       key={label as string}
-                      className="flex items-center justify-between rounded-lg bg-black/25 border border-white/10 px-4 py-2.5 text-sm"
+                      className="flex items-center justify-between rounded-lg bg-stone-50 border border-stone-200 px-4 py-2.5 text-sm"
                     >
-                      <span className="text-slate-400">{label as string}</span>
-                      <span className="font-medium text-slate-100">
+                      <span className="text-stone-500">{label as string}</span>
+                      <span className="font-medium text-stone-900">
                         {formatCurrency(amount as number, tripContext.currency)}
                       </span>
                     </li>
@@ -382,25 +370,25 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
 
               {destination.weather && (
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-3">
+                  <h3 className="text-sm font-semibold text-stone-900 mb-3">
                     Weather {destination.weather.emoji || ""}
                   </h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
-                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
-                      <div className="text-slate-400 text-xs">Condition</div>
-                      <div className="mt-1 text-white">{destination.weather.condition}</div>
+                    <div className="rounded-lg bg-stone-50 border border-stone-200 p-3">
+                      <div className="text-stone-500 text-xs">Condition</div>
+                      <div className="mt-1 text-stone-900">{destination.weather.condition}</div>
                     </div>
-                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
-                      <div className="text-slate-400 text-xs">Temperature</div>
-                      <div className="mt-1 text-white">{destination.weather.temperature}°C</div>
+                    <div className="rounded-lg bg-stone-50 border border-stone-200 p-3">
+                      <div className="text-stone-500 text-xs">Temperature</div>
+                      <div className="mt-1 text-stone-900">{destination.weather.temperature}°C</div>
                     </div>
-                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
-                      <div className="text-slate-400 text-xs">Humidity</div>
-                      <div className="mt-1 text-white">{destination.weather.humidity}%</div>
+                    <div className="rounded-lg bg-stone-50 border border-stone-200 p-3">
+                      <div className="text-stone-500 text-xs">Humidity</div>
+                      <div className="mt-1 text-stone-900">{destination.weather.humidity}%</div>
                     </div>
-                    <div className="rounded-lg bg-black/25 border border-white/10 p-3">
-                      <div className="text-slate-400 text-xs">Travel score</div>
-                      <div className="mt-1 text-white">
+                    <div className="rounded-lg bg-stone-50 border border-stone-200 p-3">
+                      <div className="text-stone-500 text-xs">Travel score</div>
+                      <div className="mt-1 text-stone-900">
                         {typeof destination.weather.travelScore === "number"
                           ? `${destination.weather.travelScore}/100`
                           : "—"}
@@ -412,15 +400,15 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
 
               {typeof destination.safetyRating === "number" && (
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-2">Safety</h3>
+                  <h3 className="text-sm font-semibold text-stone-900 mb-2">Safety</h3>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full"
+                        className="h-full bg-gradient-to-r from-teal-600 to-teal-500 rounded-full"
                         style={{ width: `${(destination.safetyRating / 10) * 100}%` }}
                       />
                     </div>
-                    <span className="text-sm font-semibold text-white">
+                    <span className="text-sm font-semibold text-stone-900">
                       {destination.safetyRating.toFixed(1)}/10
                     </span>
                   </div>
@@ -428,8 +416,8 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
               )}
 
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Map</h3>
-                <div className="rounded-2xl overflow-hidden border border-white/10 h-72">
+                <h3 className="text-sm font-semibold text-stone-900 mb-3">Map</h3>
+                <div className="rounded-2xl overflow-hidden border border-stone-200 h-72">
                   <ResultsMap destinations={[destination]} currency={tripContext.currency} />
                 </div>
               </div>
@@ -438,8 +426,8 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
           {tab === "plan" && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-white">Your day-by-day plan</h2>
-                <p className="text-sm text-slate-400 mt-1">
+                <h2 className="text-lg font-semibold text-stone-900">Your day-by-day plan</h2>
+                <p className="text-sm text-stone-500 mt-1">
                   Built from nearby OpenStreetMap attractions and restaurants, with vibe templates as fallback.
                 </p>
               </div>
@@ -447,34 +435,34 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
               {planLoading && (
                 <div className="space-y-3" aria-busy="true">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="h-28 rounded-xl bg-white/5 border border-white/10 animate-pulse" />
+                    <div key={i} className="h-28 rounded-xl bg-white/5 border border-stone-200 animate-pulse" />
                   ))}
                 </div>
               )}
 
               {!planLoading && !plan && (
-                <div className="text-sm text-slate-400">Could not build a plan for these dates.</div>
+                <div className="text-sm text-stone-500">Could not build a plan for these dates.</div>
               )}
 
               {!planLoading && plan && (
                 <div className="space-y-5">
-                  <div className="text-sm text-slate-400">
+                  <div className="text-sm text-stone-500">
                     {plan.totalDays} days · est. activities{" "}
                     {formatCurrency(plan.estimatedTotalCost, tripContext.currency)}
                   </div>
                   {plan.days.map((day) => (
                     <article
                       key={day.dayNumber}
-                      className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-3"
+                      className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-3"
                     >
                       <header className="flex items-center justify-between gap-3">
                         <div>
-                          <div className="text-xs uppercase tracking-wide text-cyan-300/80">
+                          <div className="text-xs uppercase tracking-wide text-teal-700/80">
                             Day {day.dayNumber}
                           </div>
-                          <h3 className="text-white font-medium">{day.title}</h3>
+                          <h3 className="text-stone-900 font-medium">{day.title}</h3>
                         </div>
-                        <div className="text-sm text-slate-400">
+                        <div className="text-sm text-stone-500">
                           {formatCurrency(day.estimatedDailyCost, tripContext.currency)}
                         </div>
                       </header>
@@ -482,21 +470,21 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
                         {day.blocks.map((block) => (
                           <li
                             key={`${day.dayNumber}-${block.slot}`}
-                            className="flex gap-3 rounded-lg bg-black/25 border border-white/5 px-3 py-2.5"
+                            className="flex gap-3 rounded-lg bg-stone-50 border border-stone-200 px-3 py-2.5"
                           >
                             <span className="text-lg leading-none pt-0.5" aria-hidden>
                               {block.emoji}
                             </span>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="text-sm font-medium text-slate-100 capitalize">
+                                <span className="text-sm font-medium text-stone-900 capitalize">
                                   {block.slot} · {block.title}
                                 </span>
-                                <span className="text-xs text-slate-500 shrink-0">
+                                <span className="text-xs text-stone-500 shrink-0">
                                   {formatCurrency(block.estimatedCost, tripContext.currency)}
                                 </span>
                               </div>
-                              <p className="text-xs text-slate-400 mt-0.5">{block.description}</p>
+                              <p className="text-xs text-stone-500 mt-0.5">{block.description}</p>
                             </div>
                           </li>
                         ))}
@@ -510,28 +498,28 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
           {tab === "stay" && (
             <div className="space-y-8">
               <div>
-                <h2 className="text-lg font-semibold text-white">Where to stay</h2>
-                <p className="text-sm text-slate-400 mt-1">
+                <h2 className="text-lg font-semibold text-stone-900">Where to stay</h2>
+                <p className="text-sm text-stone-500 mt-1">
                   Real lodgings nearby from OpenStreetMap. Links are free now; commission-ready later.
                 </p>
               </div>
 
               {destination.hotelEstimate?.sampleHotels && destination.hotelEstimate.sampleHotels.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-white mb-3">Budget guidance</h3>
+                  <h3 className="text-sm font-semibold text-stone-900 mb-3">Budget guidance</h3>
                   <div className="grid sm:grid-cols-3 gap-3">
                     {destination.hotelEstimate.sampleHotels.map((h) => (
                       <div
                         key={h.tier}
-                        className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-1"
+                        className="rounded-xl border border-stone-200 bg-stone-50 p-4 space-y-1"
                       >
-                        <div className="text-xs uppercase tracking-wide text-cyan-300/80">{h.tier}</div>
-                        <div className="text-white font-medium text-sm truncate">{h.name}</div>
-                        <div className="text-slate-300 text-sm">
+                        <div className="text-xs uppercase tracking-wide text-teal-700/80">{h.tier}</div>
+                        <div className="text-stone-900 font-medium text-sm truncate">{h.name}</div>
+                        <div className="text-stone-700 text-sm">
                           {formatCurrency(h.pricePerNight, tripContext.currency)}
-                          <span className="text-slate-500"> / night</span>
+                          <span className="text-stone-500"> / night</span>
                         </div>
-                        <div className="text-xs text-slate-500">{h.rating.toFixed(1)}★ · estimate</div>
+                        <div className="text-xs text-stone-500">{h.rating.toFixed(1)}★ · estimate</div>
                       </div>
                     ))}
                   </div>
@@ -539,7 +527,7 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
               )}
 
               <div>
-                <h3 className="text-sm font-semibold text-white mb-3">Nearby hotels</h3>
+                <h3 className="text-sm font-semibold text-stone-900 mb-3">Nearby hotels</h3>
                 <PoiList
                   items={hotels}
                   loading={hotelsLoading}
@@ -553,17 +541,17 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Where to eat</h2>
-                  <p className="text-sm text-slate-400 mt-1">
+                  <h2 className="text-lg font-semibold text-stone-900">Where to eat</h2>
+                  <p className="text-sm text-stone-500 mt-1">
                     Restaurants and cafés nearby from OpenStreetMap.
                   </p>
                 </div>
-                <label className="text-sm text-slate-400">
+                <label className="text-sm text-stone-500">
                   <span className="sr-only">Filter by cuisine</span>
                   <select
                     value={cuisineFilter}
                     onChange={(e) => setCuisineFilter(e.target.value)}
-                    className="mt-1 block rounded-lg bg-black/40 border border-white/15 text-slate-200 text-sm px-3 py-2"
+                    className="mt-1 block rounded-lg bg-stone-50 border border-stone-200 text-stone-700 text-sm px-3 py-2"
                   >
                     <option value="">All cuisines</option>
                     {Array.from(
@@ -603,7 +591,7 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
         <div className="flex flex-wrap gap-3">
           <Link
             href={`/?from=${encodeURIComponent(destination.name)}&lat=${destination.latitude}&lng=${destination.longitude}&placeId=${encodeURIComponent(destination.placeId)}`}
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-white/15 text-slate-200 hover:bg-white/5 text-sm font-medium"
+            className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl border border-stone-200 text-stone-700 hover:bg-white/5 text-sm font-medium"
           >
             Plan from here
           </Link>

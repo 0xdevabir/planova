@@ -25,7 +25,7 @@ export default function DestinationCard({
   highlighted = false,
 }: DestinationCardProps) {
   const primaryVibe = destination.vibes?.[0] ? VIBE_BY_ID[destination.vibes[0]] : null;
-  const headerGradient = primaryVibe?.gradient ?? "from-cyan-600 via-teal-600 to-slate-800";
+  const headerGradient = "from-teal-800 to-teal-700";
   const vibeEmojis = (destination.vibes || [])
     .slice(0, 3)
     .map((v) => VIBE_BY_ID[v]?.emoji)
@@ -162,7 +162,7 @@ export default function DestinationCard({
             <button
               type="button"
               onClick={() => onOpen(destination)}
-              className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-teal-600 hover:from-cyan-600 hover:to-teal-700 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20"
+              className="w-full inline-flex items-center justify-center gap-2 bg-teal-700 hover:bg-teal-800 text-white font-semibold py-2.5 rounded-xl transition-colors"
             >
               Open destination
             </button>
@@ -180,7 +180,7 @@ export default function DestinationCard({
               <button
                 type="button"
                 onClick={() => onSelect(destination)}
-                className="inline-flex items-center justify-center gap-2 bg-white border border-cyan-200 text-cyan-700 hover:bg-cyan-50 font-semibold py-2 rounded-xl transition-colors text-sm"
+                className="inline-flex items-center justify-center gap-2 bg-white border border-teal-200 text-teal-800 hover:bg-teal-50 font-semibold py-2 rounded-xl transition-colors text-sm"
               >
                 Plan from here
               </button>
