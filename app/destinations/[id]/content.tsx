@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { loadDestination, storeDestination } from "@/lib/utils/destinationCache";
 import { findById } from "@/lib/data/destinations";
-import type { DestinationResult, OsmPoi } from "@/lib/types";
+import type { DestinationResult, OsmPoi, Itinerary } from "@/lib/types";
 import ResultsMap from "@/components/ResultsMap";
 import PoiList from "@/components/PoiList";
 import { formatCurrency } from "@/lib/utils/money";
+import { generateItineraryFromPois } from "@/lib/services/itineraryService";
 import { FaArrowLeft, FaMapMarkerAlt } from "react-icons/fa";
 
 type TabId = "overview" | "plan" | "stay" | "eat";
@@ -59,6 +60,9 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
   const [restaurantsLoading, setRestaurantsLoading] = useState(false);
   const [restaurantsLoaded, setRestaurantsLoaded] = useState(false);
   const [cuisineFilter, setCuisineFilter] = useState("");
+  const [plan, setPlan] = useState<Itinerary | null>(null);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [planLoaded, setPlanLoaded] = useState(false);
 
   const tripContext = useMemo(
     () => ({
@@ -143,6 +147,53 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
       cancelled = true;
     };
   }, [tab, destination, restaurantsLoaded]);
+
+  // Fetch plan when Plan tab opens (lazy)
+  useEffect(() => {
+    if (tab !== "plan" || !destination || planLoaded) return;
+    let cancelled = false;
+    (async () => {
+      setPlanLoading(true);
+      try {
+        const start =
+          tripContext.startDate || new Date().toISOString().split("T")[0];
+        const end =
+          tripContext.endDate ||
+          new Date(Date.now() + 3 * 86400000).toISOString().split("T")[0];
+        const [attrRes, foodRes] = await Promise.all([
+          fetch(
+            `/api/places/attractions?lat=${destination.latitude}&lng=${destination.longitude}&limit=24`,
+          ),
+          fetch(
+            `/api/places/restaurants?lat=${destination.latitude}&lng=${destination.longitude}&limit=18`,
+          ),
+        ]);
+        const attrData = await attrRes.json();
+        const foodData = await foodRes.json();
+        const itinerary = generateItineraryFromPois(
+          destination,
+          start,
+          end,
+          Array.isArray(attrData.attractions) ? attrData.attractions : [],
+          Array.isArray(foodData.restaurants) ? foodData.restaurants : [],
+        );
+        if (!cancelled) {
+          setPlan(itinerary);
+          setPlanLoaded(true);
+        }
+      } catch {
+        if (!cancelled) {
+          setPlan(null);
+          setPlanLoaded(true);
+        }
+      } finally {
+        if (!cancelled) setPlanLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, destination, planLoaded, tripContext.startDate, tripContext.endDate]);
 
   if (loading) {
     return (
@@ -385,9 +436,75 @@ export default function DestinationDetailContent({ placeId }: { placeId: string 
             </div>
           )}
           {tab === "plan" && (
-            <div className="text-slate-400 text-sm">
-              Day-by-day plan with real places is coming next. Open the quick itinerary from results
-              for a preview.
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Your day-by-day plan</h2>
+                <p className="text-sm text-slate-400 mt-1">
+                  Built from nearby OpenStreetMap attractions and restaurants, with vibe templates as fallback.
+                </p>
+              </div>
+
+              {planLoading && (
+                <div className="space-y-3" aria-busy="true">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="h-28 rounded-xl bg-white/5 border border-white/10 animate-pulse" />
+                  ))}
+                </div>
+              )}
+
+              {!planLoading && !plan && (
+                <div className="text-sm text-slate-400">Could not build a plan for these dates.</div>
+              )}
+
+              {!planLoading && plan && (
+                <div className="space-y-5">
+                  <div className="text-sm text-slate-400">
+                    {plan.totalDays} days · est. activities{" "}
+                    {formatCurrency(plan.estimatedTotalCost, tripContext.currency)}
+                  </div>
+                  {plan.days.map((day) => (
+                    <article
+                      key={day.dayNumber}
+                      className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-3"
+                    >
+                      <header className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs uppercase tracking-wide text-cyan-300/80">
+                            Day {day.dayNumber}
+                          </div>
+                          <h3 className="text-white font-medium">{day.title}</h3>
+                        </div>
+                        <div className="text-sm text-slate-400">
+                          {formatCurrency(day.estimatedDailyCost, tripContext.currency)}
+                        </div>
+                      </header>
+                      <ul className="space-y-2">
+                        {day.blocks.map((block) => (
+                          <li
+                            key={`${day.dayNumber}-${block.slot}`}
+                            className="flex gap-3 rounded-lg bg-black/25 border border-white/5 px-3 py-2.5"
+                          >
+                            <span className="text-lg leading-none pt-0.5" aria-hidden>
+                              {block.emoji}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-sm font-medium text-slate-100 capitalize">
+                                  {block.slot} · {block.title}
+                                </span>
+                                <span className="text-xs text-slate-500 shrink-0">
+                                  {formatCurrency(block.estimatedCost, tripContext.currency)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-400 mt-0.5">{block.description}</p>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
           )}
           {tab === "stay" && (

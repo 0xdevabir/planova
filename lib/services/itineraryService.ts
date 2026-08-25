@@ -4,7 +4,7 @@
 // without needing a live activity API.
 
 import { dayCount, addDays } from "@/lib/utils/dates";
-import type { DestinationResult, Itinerary, ItineraryBlock, ItineraryDay, TripVibe } from "@/lib/types";
+import type { DestinationResult, Itinerary, ItineraryBlock, ItineraryDay, OsmPoi, TripVibe } from "@/lib/types";
 
 interface PoolEntry {
   slot: ItineraryBlock["slot"];
@@ -296,5 +296,77 @@ export function generateItinerary(destination: DestinationResult, startDate: Dat
     vibes,
     days,
     estimatedTotalCost,
+  };
+}
+
+/**
+ * Prefer real OSM POIs for itinerary blocks; fall back to vibe templates
+ * when coverage is thin.
+ */
+export function generateItineraryFromPois(
+  destination: DestinationResult,
+  startDate: Date | string,
+  endDate: Date | string,
+  attractions: OsmPoi[],
+  restaurants: OsmPoi[],
+): Itinerary {
+  const base = generateItinerary(destination, startDate, endDate);
+  if (attractions.length === 0 && restaurants.length === 0) return base;
+
+  const sights = attractions.slice();
+  const food = restaurants.slice();
+  let si = 0;
+  let fi = 0;
+
+  const days = base.days.map((day, dayIndex) => {
+    const blocks = day.blocks.map((block) => {
+      if ((block.category === "sight" || block.category === "activity") && sights[si]) {
+        const poi = sights[si++];
+        return {
+          ...block,
+          title: poi.name,
+          description: poi.distanceKm != null
+            ? `OpenStreetMap place · ${poi.distanceKm} km from center`
+            : "OpenStreetMap place nearby",
+          emoji: block.category === "sight" ? "📍" : block.emoji,
+        };
+      }
+      if (block.category === "food" && food[fi]) {
+        const poi = food[fi++];
+        return {
+          ...block,
+          title: poi.name,
+          description: poi.cuisine
+            ? `${poi.cuisine} · OpenStreetMap`
+            : "Local dining · OpenStreetMap",
+          emoji: "🍽️",
+        };
+      }
+      return block;
+    });
+
+    // If we still have unused sights, inject into morning of later days that stayed template-only
+    if (dayIndex > 0 && sights[si] && blocks.every((b) => !b.description.includes("OpenStreetMap"))) {
+      const poi = sights[si++];
+      blocks[0] = {
+        ...blocks[0],
+        title: poi.name,
+        description: "OpenStreetMap attraction",
+        category: "sight",
+        emoji: "📍",
+      };
+    }
+
+    return {
+      ...day,
+      blocks,
+      estimatedDailyCost: blocks.reduce((sum, b) => sum + b.estimatedCost, 0),
+    };
+  });
+
+  return {
+    ...base,
+    days,
+    estimatedTotalCost: days.reduce((sum, d) => sum + d.estimatedDailyCost, 0),
   };
 }
