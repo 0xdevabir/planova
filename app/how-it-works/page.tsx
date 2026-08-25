@@ -9,7 +9,7 @@ const steps = [
   {
     emoji: "🎯",
     title: "Drop a pin or search",
-    desc: "Map tap or autocomplete resolves coordinates with Google first and OSM as a resilient fallback.",
+    desc: "Autocomplete and geocoding use our curated catalog first, with OpenStreetMap as enrichment.",
     detail: "Set radius and currency up front to bias the search toward what matters to you.",
     gradient: "from-cyan-400 to-blue-500",
   },
@@ -75,7 +75,7 @@ export default function HowItWorks() {
               <h3 className="text-2xl font-semibold text-slate-900">What happens after you search</h3>
               <ol className="mt-4 space-y-3 text-slate-700 text-sm">
                 {[
-                  "Geocode via Google first; fall back to OSM when needed.",
+                  "Resolve places from the curated catalog, then enrich with OpenStreetMap.",
                   "Fan-out to Places search; dedupe and normalize to destination cards.",
                   "Estimate flights/hotels/food to derive total and valueScore.",
                   "Apply vibe match bonus + sort by user-selected sort key.",

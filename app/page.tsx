@@ -6,9 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/useToast";
 import Navbar from "@/components/Navbar";
 import HeroSearchBar from "@/components/HeroSearchBar";
-import DestinationCard from "@/components/DestinationCard";
-import ResultsMap from "@/components/ResultsMap";
-import { SearchResponse } from "@/lib/types";
 
 export default function Home() {
   return (
@@ -295,13 +292,13 @@ function HomeInner() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[{
                     q: "What if a city has no results?",
-                    a: "We try multiple data sources (Google + OpenStreetMap). Broaden the region or widen budget and dates to unlock more choices.",
+                    a: "We search a curated catalog first, then enrich with OpenStreetMap (and Google if configured). Broaden budget or dates to unlock more choices.",
                   }, {
                     q: "Do I need paid APIs?",
                     a: "No. Planova works with free-friendly defaults. Add your own keys only if you want richer detail.",
                   }, {
                     q: "Can I save destinations?",
-                    a: "Favorites are coming. For now, copy a result and we’ll keep totals stable for your session.",
+                    a: "Yes — tap the heart on any destination card. Favorites are saved in this browser for now.",
                   }, {
                     q: "Will prices stay current?",
                     a: "We refresh frequently. Re-run a search to sync flight and stay estimates before you book.",
@@ -360,8 +357,8 @@ function HomeInner() {
               <span className="font-semibold text-lg">Planova</span>
             </div>
             <div className="flex items-center gap-6 text-white/70 text-sm">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
+              <a href="/terms" className="hover:text-white transition-colors">Terms</a>
               <a href="#" className="hover:text-white transition-colors">Contact</a>
             </div>
             <p className="text-white/50 text-sm">© 2025 Planova. All rights reserved.</p>

@@ -446,8 +446,8 @@ export default function RecommendationsContent() {
               <span className="font-semibold text-lg">Planova</span>
             </div>
             <div className="flex items-center gap-6 text-white/70 text-sm">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
+              <a href="/terms" className="hover:text-white transition-colors">Terms</a>
               <a href="#" className="hover:text-white transition-colors">Contact</a>
             </div>
             <p className="text-white/50 text-sm">© 2026 Planova. All rights reserved.</p>
