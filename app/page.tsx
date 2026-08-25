@@ -124,8 +124,8 @@ function HomeInner() {
       <Navbar />
 
       {/* Fixed Hero Content */}
-      <section className="fixed inset-0 w-full h-screen flex items-center justify-center overflow-hidden pointer-events-none z-10">
-        <div className="relative w-full max-w-5xl mx-auto px-4 pt-24 pb-16 lg:pt-28 text-center space-y-6 pointer-events-auto">
+      <section className="fixed inset-0 w-full h-screen flex items-end sm:items-center justify-center overflow-x-hidden overflow-y-auto pointer-events-none z-10">
+        <div className="relative w-full max-w-5xl mx-auto px-3 sm:px-4 pt-28 pb-8 sm:pb-16 lg:pt-28 text-center space-y-5 sm:space-y-6 pointer-events-auto">
           <h1 className="text-4xl sm:text-5xl font-semibold text-white leading-tight reveal-on-scroll" style={{ "--reveal-delay": "80ms" } as CSSProperties}>
             Your next adventure starts right here
           </h1>

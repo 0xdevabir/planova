@@ -84,15 +84,17 @@ function FieldButton({
       type="button"
       onClick={onClick}
       className={[
-        "w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-left transition-colors border",
+        "w-full h-full flex items-center gap-2.5 px-3 py-3 sm:px-3.5 text-left transition-colors",
         highlight
-          ? "bg-teal-700 border-teal-700 text-white"
+          ? "bg-teal-700 text-white"
           : active
-            ? "bg-stone-50 border-teal-700/40 text-stone-900"
-            : "bg-transparent border-transparent hover:bg-stone-50 text-stone-900",
+            ? "bg-stone-100 text-stone-900"
+            : "bg-transparent text-stone-900 hover:bg-stone-50",
       ].join(" ")}
     >
-      <span className={highlight ? "text-white/90" : "text-teal-800"}>{icon}</span>
+      <span className={["shrink-0", highlight ? "text-white/90" : "text-teal-800"].join(" ")}>
+        {icon}
+      </span>
       <span className="flex flex-col min-w-0 flex-1">
         <span
           className={[
@@ -102,7 +104,7 @@ function FieldButton({
         >
           {label}
         </span>
-        <span className="text-sm font-semibold truncate">{value}</span>
+        <span className="text-sm font-semibold truncate leading-snug">{value}</span>
       </span>
     </button>
   );
@@ -259,7 +261,6 @@ export default function HeroSearchBar({
 
     let loc = selectedLocation;
     if (!loc) {
-      // Prefer first autocomplete hit if the user typed but didn’t click
       if (predictions[0]?.lat && predictions[0]?.lng) {
         const p = predictions[0];
         loc = {
@@ -331,7 +332,6 @@ export default function HeroSearchBar({
     if (!selectedLocation) return;
     const t = setTimeout(() => handleSubmit(), 0);
     return () => clearTimeout(t);
-    // only when prefill lands
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedLocation?.placeId, autoSubmitOnSelect]);
 
@@ -358,130 +358,138 @@ export default function HeroSearchBar({
     if (e.key === "Escape") setShowAutocomplete(false);
   };
 
+  const openOnly = (panel: "date" | "budget" | "guests" | "vibe") => {
+    setShowDatePicker(panel === "date");
+    setShowBudgetPicker(panel === "budget");
+    setShowGuestsPicker(panel === "guests");
+    setShowVibePicker(panel === "vibe");
+    setShowAutocomplete(false);
+  };
+
   return (
-    <div className="relative w-full max-w-5xl mx-auto px-2 sm:px-4">
+    <div className="relative w-full max-w-3xl mx-auto sm:max-w-4xl px-0 sm:px-2">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit();
         }}
-        className="relative rounded-2xl border border-stone-200/90 bg-white shadow-[0_20px_50px_rgba(28,25,23,0.12)]"
+        className="relative rounded-2xl sm:rounded-3xl border border-stone-200/90 bg-white shadow-[0_24px_60px_rgba(28,25,23,0.18)] overflow-visible"
       >
-        <div className="flex flex-col lg:flex-row lg:items-stretch gap-0 divide-y lg:divide-y-0 lg:divide-x divide-stone-100">
-          {/* Location */}
-          <div ref={autocompleteRef} className="relative flex-[1.4] min-w-0 p-2">
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl focus-within:bg-stone-50 transition-colors">
-              <svg
-                className="w-4 h-4 text-teal-800 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+        {/* Location — full width top */}
+        <div ref={autocompleteRef} className="relative border-b border-stone-100">
+          <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5 sm:py-4">
+            <svg
+              className="w-5 h-5 text-teal-800 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <div className="flex flex-col flex-1 min-w-0 text-left">
+              <label
+                htmlFor="hero-location"
+                className="text-[10px] uppercase tracking-[0.14em] font-semibold text-stone-500"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-              <div className="flex flex-col flex-1 min-w-0">
-                <span className="text-[10px] uppercase tracking-[0.14em] font-semibold text-stone-500">
-                  From / explore near
-                </span>
-                <input
-                  type="text"
-                  placeholder="Search city, region, or country"
-                  value={destination}
-                  onChange={(e) => {
-                    setDestination(e.target.value);
-                    setSelectedLocation(null);
-                    onDestinationChange?.(e.target.value);
-                  }}
-                  onFocus={() => {
-                    if (predictions.length > 0) setShowAutocomplete(true);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  aria-label="Location"
-                  aria-autocomplete="list"
-                  aria-expanded={showAutocomplete}
-                  autoComplete="off"
-                  className="bg-transparent text-stone-900 placeholder-stone-400 text-sm w-full focus:outline-none font-semibold"
-                />
-              </div>
-              {selectedLocation && (
-                <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-wide text-teal-800 bg-teal-50 border border-teal-100 rounded-full px-2 py-0.5">
-                  Matched
-                </span>
-              )}
+                From / explore near
+              </label>
+              <input
+                id="hero-location"
+                type="text"
+                placeholder="City, region, or country"
+                value={destination}
+                onChange={(e) => {
+                  setDestination(e.target.value);
+                  setSelectedLocation(null);
+                  onDestinationChange?.(e.target.value);
+                }}
+                onFocus={() => {
+                  if (predictions.length > 0) setShowAutocomplete(true);
+                }}
+                onKeyDown={handleKeyDown}
+                aria-label="Location"
+                aria-autocomplete="list"
+                aria-expanded={showAutocomplete}
+                autoComplete="off"
+                className="bg-transparent text-stone-900 placeholder-stone-400 text-base sm:text-sm w-full focus:outline-none font-semibold"
+              />
             </div>
-
-            {showAutocomplete && (
-              <div
-                role="listbox"
-                className="absolute left-2 right-2 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-stone-200 max-h-80 overflow-y-auto z-50"
-              >
-                {autocompleteLoading && predictions.length === 0 && (
-                  <div className="px-4 py-3 text-sm text-stone-500">Searching places…</div>
-                )}
-                {predictions.map((prediction, index) => (
-                  <button
-                    key={prediction.place_id}
-                    type="button"
-                    role="option"
-                    aria-selected={index === highlightIndex}
-                    onMouseEnter={() => setHighlightIndex(index)}
-                    onClick={() => applyPrediction(prediction)}
-                    className={[
-                      "w-full px-4 py-3 text-left flex items-start gap-3 border-b border-stone-100 last:border-b-0 transition-colors",
-                      index === highlightIndex ? "bg-teal-50" : "hover:bg-stone-50",
-                    ].join(" ")}
-                  >
-                    <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-800 bg-teal-50 border border-teal-100 rounded px-1.5 py-0.5 shrink-0">
-                      {KIND_LABEL[prediction.kind || "place"]}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block text-sm font-semibold text-stone-900 truncate">
-                        {prediction.name}
-                      </span>
-                      {prediction.context && (
-                        <span className="block text-xs text-stone-500 truncate mt-0.5">
-                          {prediction.context}
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                ))}
-                {!autocompleteLoading && predictions.length === 0 && destination.trim() && (
-                  <div className="px-4 py-3 text-sm text-stone-500">
-                    No places found. Try a city name like “Dhaka” or “Paris”.
-                  </div>
-                )}
-              </div>
+            {selectedLocation && (
+              <span className="hidden xs:inline sm:inline shrink-0 text-[10px] font-semibold uppercase tracking-wide text-teal-800 bg-teal-50 border border-teal-100 rounded-full px-2 py-0.5">
+                Ready
+              </span>
             )}
           </div>
 
-          {/* Dates */}
-          <div className="relative flex-1 min-w-[140px] p-2" ref={dateRef}>
+          {showAutocomplete && (
+            <div
+              role="listbox"
+              className="absolute left-2 right-2 sm:left-3 sm:right-3 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-stone-200 max-h-72 overflow-y-auto z-50 text-left"
+            >
+              {autocompleteLoading && predictions.length === 0 && (
+                <div className="px-4 py-3 text-sm text-stone-500">Searching places…</div>
+              )}
+              {predictions.map((prediction, index) => (
+                <button
+                  key={prediction.place_id}
+                  type="button"
+                  role="option"
+                  aria-selected={index === highlightIndex}
+                  onMouseEnter={() => setHighlightIndex(index)}
+                  onClick={() => applyPrediction(prediction)}
+                  className={[
+                    "w-full px-4 py-3 text-left flex items-start gap-3 border-b border-stone-100 last:border-b-0 transition-colors",
+                    index === highlightIndex ? "bg-teal-50" : "hover:bg-stone-50",
+                  ].join(" ")}
+                >
+                  <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-800 bg-teal-50 border border-teal-100 rounded px-1.5 py-0.5 shrink-0">
+                    {KIND_LABEL[prediction.kind || "place"]}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-stone-900 truncate">
+                      {prediction.name}
+                    </span>
+                    {prediction.context && (
+                      <span className="block text-xs text-stone-500 truncate mt-0.5">
+                        {prediction.context}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              ))}
+              {!autocompleteLoading && predictions.length === 0 && destination.trim() && (
+                <div className="px-4 py-3 text-sm text-stone-500">
+                  No places found. Try a city name like “Dhaka” or “Paris”.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Filters — 2×2 on mobile, 4-col on md+ */}
+        <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-stone-100">
+          <div className="relative min-w-0" ref={dateRef}>
             <FieldButton
               icon={<FaCalendarAlt className="w-3.5 h-3.5" />}
               label="Dates"
               value={`${fmtDate(startDate)} – ${fmtDate(endDate)}`}
               active={showDatePicker}
-              onClick={() => {
-                setShowDatePicker((v) => !v);
-                setShowBudgetPicker(false);
-                setShowGuestsPicker(false);
-                setShowVibePicker(false);
-              }}
+              onClick={() => (showDatePicker ? closeAll() : openOnly("date"))}
             />
             {showDatePicker && (
-              <div className="absolute top-full left-2 mt-1.5 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-72">
+              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-full sm:w-72 text-left">
                 <div className="space-y-3">
                   <label className="block">
                     <span className="block text-xs font-medium text-stone-600 mb-1">Start</span>
@@ -515,22 +523,16 @@ export default function HeroSearchBar({
             )}
           </div>
 
-          {/* Budget */}
-          <div className="relative flex-1 min-w-[140px] p-2" ref={budgetRef}>
+          <div className="relative min-w-0" ref={budgetRef}>
             <FieldButton
               icon={<FaDollarSign className="w-3.5 h-3.5" />}
               label={`Budget (${currency})`}
               value={`${fmtMoney(budgetMin, currency)} – ${fmtMoney(budgetMax, currency)}`}
               active={showBudgetPicker}
-              onClick={() => {
-                setShowBudgetPicker((v) => !v);
-                setShowDatePicker(false);
-                setShowGuestsPicker(false);
-                setShowVibePicker(false);
-              }}
+              onClick={() => (showBudgetPicker ? closeAll() : openOnly("budget"))}
             />
             {showBudgetPicker && (
-              <div className="absolute top-full left-2 right-2 sm:right-auto mt-1.5 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-80">
+              <div className="absolute top-full left-0 right-0 sm:left-auto sm:right-0 mt-2 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-full sm:w-80 text-left">
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-medium text-stone-600 mb-1">Currency</label>
@@ -597,23 +599,17 @@ export default function HeroSearchBar({
             )}
           </div>
 
-          {/* Travelers */}
-          <div className="relative flex-1 min-w-[120px] p-2" ref={guestsRef}>
+          <div className="relative min-w-0" ref={guestsRef}>
             <FieldButton
               icon={<FaUser className="w-3.5 h-3.5" />}
               label="Travelers"
               value={`${travelers} ${travelers === 1 ? "person" : "people"}`}
               active={showGuestsPicker}
-              onClick={() => {
-                setShowGuestsPicker((v) => !v);
-                setShowDatePicker(false);
-                setShowBudgetPicker(false);
-                setShowVibePicker(false);
-              }}
+              onClick={() => (showGuestsPicker ? closeAll() : openOnly("guests"))}
             />
             {showGuestsPicker && (
-              <div className="absolute top-full right-2 mt-1.5 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-56">
-                <div className="flex items-center justify-between">
+              <div className="absolute top-full left-0 right-0 sm:left-0 sm:right-auto mt-2 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-full sm:w-56 text-left">
+                <div className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium text-stone-700">Travelers</span>
                   <div className="flex items-center gap-3">
                     <button
@@ -641,8 +637,7 @@ export default function HeroSearchBar({
             )}
           </div>
 
-          {/* Vibes */}
-          <div className="relative flex-1 min-w-[120px] p-2" ref={vibeRef}>
+          <div className="relative min-w-0" ref={vibeRef}>
             <FieldButton
               icon={<FaRegSmile className="w-3.5 h-3.5" />}
               label="Vibes"
@@ -655,36 +650,31 @@ export default function HeroSearchBar({
               }
               active={showVibePicker}
               highlight={vibes.length > 0}
-              onClick={() => {
-                setShowVibePicker((v) => !v);
-                setShowDatePicker(false);
-                setShowBudgetPicker(false);
-                setShowGuestsPicker(false);
-              }}
+              onClick={() => (showVibePicker ? closeAll() : openOnly("vibe"))}
             />
             {showVibePicker && (
-              <div className="absolute top-full right-2 mt-1.5 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-80">
+              <div className="absolute top-full left-0 right-0 md:left-auto md:right-0 mt-2 bg-white rounded-xl shadow-xl border border-stone-200 p-4 z-50 w-full md:w-80 text-left">
                 <VibePicker selected={vibes} onChange={setVibes} />
               </div>
             )}
           </div>
+        </div>
 
-          {/* Submit */}
-          <div className="p-2 flex items-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full lg:w-auto inline-flex items-center justify-center gap-2 bg-teal-700 hover:bg-teal-800 text-white px-5 py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-60 whitespace-nowrap"
-            >
-              <FaSearch className="w-3.5 h-3.5" />
-              {loading ? "Searching…" : "Search"}
-            </button>
-          </div>
+        {/* Search CTA — full width */}
+        <div className="p-3 sm:p-4 border-t border-stone-100">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full inline-flex items-center justify-center gap-2 bg-teal-700 hover:bg-teal-800 text-white px-5 py-3.5 rounded-xl font-semibold text-sm sm:text-base transition-colors disabled:opacity-60"
+          >
+            <FaSearch className="w-4 h-4" />
+            {loading ? "Searching…" : "Search trips"}
+          </button>
         </div>
 
         {error && (
-          <div className="px-4 pb-3">
-            <p className="text-sm font-medium text-rose-800 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl">
+          <div className="px-4 pb-4">
+            <p className="text-sm font-medium text-rose-800 bg-rose-50 border border-rose-200 px-3 py-2 rounded-xl text-left">
               {error}
             </p>
           </div>
