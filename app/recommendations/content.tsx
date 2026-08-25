@@ -217,7 +217,7 @@ export default function RecommendationsContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="min-h-screen page-atmosphere">
         <Navbar />
         <div className="container mx-auto px-4 py-12 lg:py-16 mt-24 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
           <Skeleton className="h-96 w-full" />
@@ -236,17 +236,40 @@ export default function RecommendationsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen page-atmosphere">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8 lg:py-12 space-y-8 text-gray-900 mt-24">
+      <div className="container mx-auto px-4 py-8 lg:py-12 space-y-8 text-gray-900 mt-24 relative z-10">
         {/* Back link */}
-        <button
-          onClick={() => router.back()}
-          className="text-cyan-700 hover:text-cyan-800 font-semibold flex items-center gap-2 text-sm"
-        >
-          <FaArrowLeft className="text-xs" /> Back to search
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <button
+            onClick={() => router.back()}
+            className="text-cyan-300 hover:text-cyan-200 font-semibold flex items-center gap-2 text-sm"
+          >
+            <FaArrowLeft className="text-xs" /> Back to search
+          </button>
+        </div>
+
+        <div className="sticky top-20 z-30 frosted-surface rounded-2xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border border-white/10">
+          <div className="text-sm text-slate-200">
+            <span className="text-slate-400">Trip from</span>{" "}
+            <span className="font-medium text-white">{searchResults?.query.destination || "—"}</span>
+            {searchResults?.query.startDate && searchResults?.query.endDate && (
+              <span className="text-slate-400">
+                {" "}
+                · {new Date(searchResults.query.startDate).toISOString().slice(0, 10)} →{" "}
+                {new Date(searchResults.query.endDate).toISOString().slice(0, 10)}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-cyan-500/20 text-cyan-100 border border-cyan-400/30 hover:bg-cyan-500/30"
+          >
+            <FaSearch className="text-xs" /> Refine this trip
+          </button>
+        </div>
 
         {/* Header card */}
         <Card variant="glass" padding="base" className="space-y-6">

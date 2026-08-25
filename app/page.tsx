@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useToast } from "@/hooks/useToast";
 import Navbar from "@/components/Navbar";
 import HeroSearchBar from "@/components/HeroSearchBar";
 import DestinationCard from "@/components/DestinationCard";
@@ -18,6 +19,7 @@ export default function Home() {
 }
 
 function HomeInner() {
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -81,7 +83,7 @@ function HomeInner() {
       router.push(`/recommendations?${searchParams.toString()}`);
     } catch (error) {
       console.error("Search error:", error);
-      alert("Search failed. Please try again.");
+      toast({ title: "Search failed", description: "Please try again.", tone: "danger" });
     } finally {
       setLoading(false);
     }
