@@ -367,6 +367,7 @@ export default function RecommendationsContent() {
                         onOpen={handleOpenDestination}
                         onSelect={handleSelectDestination}
                         onItinerary={(d) => setItineraryTarget(d)}
+                        highlighted={hoveredId === destination.placeId}
                       />
                     </div>
                   ))}
