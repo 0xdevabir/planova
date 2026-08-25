@@ -219,3 +219,23 @@ export interface HotelPrice {
   amenities: string[];
   image?: string;
 }
+
+// ---------- OpenStreetMap POIs ----------
+
+export type OsmPoiKind = "hotel" | "restaurant" | "attraction";
+
+export interface OsmPoi {
+  id: string;
+  name: string;
+  kind: OsmPoiKind;
+  latitude: number;
+  longitude: number;
+  distanceKm?: number;
+  rating?: number;
+  cuisine?: string;
+  stars?: number;
+  phone?: string;
+  website?: string;
+  osmUrl: string;
+  tags?: Record<string, string>;
+}
