@@ -50,14 +50,13 @@ export function ItineraryModal({ destination, startDate, endDate, currency, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
+      <div role="dialog" aria-modal="true" aria-labelledby="itinerary-title" className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 p-5 flex items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-700 font-semibold">Day-by-day</p>
-            <h2 className="text-2xl font-bold text-slate-900">
+            <h2 id="itinerary-title" className="text-2xl font-bold text-slate-900">
               {itinerary.totalDays}-day itinerary for {destination.name}
             </h2>
             <div className="flex flex-wrap gap-1.5 mt-2">

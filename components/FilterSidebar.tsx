@@ -22,6 +22,8 @@ interface FilterSidebarProps {
   resultCount: number;
   totalCount: number;
   bounds: { min: number; max: number };
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
@@ -31,7 +33,7 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "duration", label: "By duration" },
 ];
 
-export function FilterSidebar({ state, onChange, resultCount, totalCount, bounds }: FilterSidebarProps) {
+export function FilterSidebar({ state, onChange, resultCount, totalCount, bounds, mobileOpen = false, onMobileClose }: FilterSidebarProps) {
   const toggleVibe = (v: TripVibe) => {
     const next = state.vibes.includes(v) ? state.vibes.filter((x) => x !== v) : [...state.vibes, v];
     onChange({ ...state, vibes: next });
@@ -49,8 +51,8 @@ export function FilterSidebar({ state, onChange, resultCount, totalCount, bounds
     });
   };
 
-  return (
-    <aside className="glass-card rounded-3xl p-5 space-y-5 sticky top-24">
+  const panel = (
+    <aside className="glass-card rounded-3xl p-5 space-y-5 lg:sticky lg:top-24 h-full overflow-y-auto">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-700 flex items-center gap-2">
           <FaFilter className="text-cyan-600" /> Filters
@@ -184,12 +186,43 @@ export function FilterSidebar({ state, onChange, resultCount, totalCount, bounds
       </div>
     </aside>
   );
+
+  return (
+    <>
+      <div className="hidden lg:block">{panel}</div>
+      {mobileOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            aria-label="Close filters"
+            onClick={onMobileClose}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filters"
+            className="absolute inset-y-0 left-0 w-[min(100%,22rem)] p-3 shadow-2xl"
+          >
+            <div className="flex justify-end mb-2">
+              <button type="button" onClick={onMobileClose} className="text-white/80 hover:text-white text-sm font-medium px-2 py-1">
+                Close
+              </button>
+            </div>
+            {panel}
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 function Toggle({ label, active, onChange }: { label: string; active: boolean; onChange: (v: boolean) => void }) {
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={active}
       onClick={() => onChange(!active)}
       className="flex items-center justify-between w-full text-sm text-slate-700 hover:text-cyan-700"
     >

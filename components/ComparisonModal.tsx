@@ -44,7 +44,7 @@ export function ComparisonModal({ open, destinations, onClose, currency }: Compa
       ),
     },
     {
-      label: "Per person",
+      label: "Per day",
       render: (d) => formatCurrency(Math.round(d.totalEstimatedCost / Math.max(1, d.durationDays)), currency),
     },
     {
@@ -102,7 +102,7 @@ export function ComparisonModal({ open, destinations, onClose, currency }: Compa
       ),
     },
     {
-      label: "Flights",
+      label: "Flight status",
       render: (d) => (
         <span
           className={[
@@ -139,14 +139,13 @@ export function ComparisonModal({ open, destinations, onClose, currency }: Compa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
+      <div role="dialog" aria-modal="true" aria-labelledby="compare-title" className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-slate-200 p-5 flex items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-cyan-700 font-semibold">Side-by-side</p>
-            <h2 className="text-2xl font-bold text-slate-900">Compare {destinations.length} destinations</h2>
+            <h2 id="compare-title" className="text-2xl font-bold text-slate-900">Compare {destinations.length} destinations</h2>
           </div>
           <button
             type="button"

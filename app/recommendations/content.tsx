@@ -39,6 +39,7 @@ export default function RecommendationsContent() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [itineraryTarget, setItineraryTarget] = useState<DestinationResult | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -326,6 +327,16 @@ export default function RecommendationsContent() {
 
         {/* Results layout */}
         {hasResults && (
+          <>
+          <div className="lg:hidden">
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-slate-200 text-slate-700 shadow-sm"
+            >
+              Filters
+            </button>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
             <FilterSidebar
               state={filters}
@@ -333,6 +344,8 @@ export default function RecommendationsContent() {
               resultCount={filteredResults.length}
               totalCount={searchResults!.results.length}
               bounds={bounds}
+              mobileOpen={filtersOpen}
+              onMobileClose={() => setFiltersOpen(false)}
             />
 
             <div>
@@ -375,6 +388,7 @@ export default function RecommendationsContent() {
               )}
             </div>
           </div>
+          </>
         )}
 
         {!hasResults && searchResults && (
