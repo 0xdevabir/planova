@@ -189,15 +189,17 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // 1) Curated catalog — matches the user's typed query, ordered by popularity.
-  let catalogMatches: CatalogDestination[] = [];
-  if (query) {
-    catalogMatches = searchCatalog(query, limit);
-  }
-  // If the typed query matches nothing (e.g. "safasdfasf") fall back to
-  // nearby catalog entries so we always have *something*.
-  if (catalogMatches.length === 0) {
-    catalogMatches = nearestCatalog(latitude, longitude, limit);
+  // 1) Curated catalog — text matches first, always seeded with nearest places
+  //    so a query like "Dhaka Division" never returns faraway India-only hits.
+  const textMatches = query ? searchCatalog(query, limit) : [];
+  const nearbyMatches = nearestCatalog(latitude, longitude, Math.max(limit, 12));
+  const catalogMatches: CatalogDestination[] = [];
+  const seenIds = new Set<string>();
+  for (const c of [...textMatches, ...nearbyMatches]) {
+    if (seenIds.has(c.placeId)) continue;
+    seenIds.add(c.placeId);
+    catalogMatches.push(c);
+    if (catalogMatches.length >= limit) break;
   }
 
   // 2) OSM enrichment (rate-limited; non-blocking if it fails)
@@ -231,28 +233,35 @@ export async function GET(request: NextRequest) {
 
   const deduped = dedupe(filtered);
 
-  // Score: catalog entries lead, then higher-rated external hits.
+  // Score: geography first. Distant "popular" cities must not beat nearby ones.
+  // Soft radius: prefer ≤1200 km; still allow farther catalog hits at the end.
   const scored = deduped
     .map((p) => {
       const km = haversineKm(
         { latitude, longitude },
         { latitude: p.latitude, longitude: p.longitude },
       );
-      const ratingScore = (p.rating ?? 4) * 10;
-      const sourceBonus = p.source === "catalog" ? 25 : p.source === "google" ? 10 : 0;
-      const distancePenalty = Math.min(40, km / 1000); // closer = better, capped
-      return { p, score: ratingScore + sourceBonus - distancePenalty };
+      const ratingScore = (p.rating ?? 4) * 6;
+      const sourceBonus = p.source === "catalog" ? 20 : p.source === "google" ? 6 : 2;
+      // ~1 point per 25 km — 500 km ≈ -20, 1500 km ≈ -60
+      const distancePenalty = km / 25;
+      const nearBonus = km <= 400 ? 35 : km <= 800 ? 20 : km <= 1200 ? 8 : 0;
+      return { p, km, score: ratingScore + sourceBonus + nearBonus - distancePenalty };
     })
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit)
-    .map(({ p }) => toResponse(p));
+    .sort((a, b) => b.score - a.score || a.km - b.km);
+
+  // Keep a nearby-first pool, then fill with the rest
+  const nearPool = scored.filter((x) => x.km <= 1200);
+  const farPool = scored.filter((x) => x.km > 1200);
+  const picked = [...nearPool, ...farPool].slice(0, limit).map(({ p }) => toResponse(p));
+  const scoredFinal = picked;
 
   // Final safety net — if for any reason scored is empty, dump the closest
   // catalog entries. This *never* returns an empty array.
-  if (scored.length === 0) {
+  if (scoredFinal.length === 0) {
     const fallback = nearestCatalog(latitude, longitude, limit).map(toDestination);
     return NextResponse.json({ places: fallback, source: "catalog-fallback" });
   }
 
-  return NextResponse.json({ places: scored, source: "mixed" });
+  return NextResponse.json({ places: scoredFinal, source: "mixed" });
 }

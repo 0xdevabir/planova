@@ -5,6 +5,7 @@
 // returns realistic, well-described destinations to the user.
 
 import type { Destination, TripVibe } from "@/lib/types";
+import { haversineKm } from "@/lib/utils/geo";
 
 export interface CatalogDestination extends Destination {
   /** ISO-3166 alpha-2 country code */
@@ -107,6 +108,15 @@ export const CATALOG: CatalogDestination[] = [
   { placeId: "cat_amman_jo", name: "Amman", countryCode: "JO", country: "Jordan", region: "Middle East", latitude: 31.9454, longitude: 35.9284, rating: 4.5, reviews: 180000, popularity: 3, vibes: ["culture", "adventure"], nightlyBaseUsd: 95, description: "Ancient crossroads city", summary: "Citadel views, Roman theatres, and Petra day trips." },
 
   // -------- South Asia --------
+  { placeId: "cat_dhaka_bd", name: "Dhaka", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 23.8103, longitude: 90.4125, rating: 4.3, reviews: 180000, popularity: 4, vibes: ["city", "food", "culture"], nightlyBaseUsd: 50, description: "Bustling capital on the Buriganga", summary: "Old Dhaka lanes, Lalbagh Fort, and riverside food walks." },
+  { placeId: "cat_chittagong_bd", name: "Chittagong", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 22.3569, longitude: 91.7832, rating: 4.3, reviews: 62000, popularity: 3, vibes: ["city", "nature", "food"], nightlyBaseUsd: 45, description: "Port city by the Bay of Bengal", summary: "Patenga beach, hills, and spicy coastal cuisine." },
+  { placeId: "cat_coxsbazar_bd", name: "Cox's Bazar", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 21.4272, longitude: 92.0058, rating: 4.6, reviews: 95000, popularity: 5, vibes: ["beach", "romance", "nature"], nightlyBaseUsd: 55, description: "World's longest natural sea beach", summary: "Sunrise walks, seafood, and Himchari viewpoints." },
+  { placeId: "cat_sylhet_bd", name: "Sylhet", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 24.8949, longitude: 91.8687, rating: 4.5, reviews: 48000, popularity: 4, vibes: ["nature", "adventure", "culture"], nightlyBaseUsd: 45, description: "Tea gardens and waterfall country", summary: "Jaflong, Ratargul swamp forest, and shrine towns." },
+  { placeId: "cat_sundarbans_bd", name: "Sundarbans", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 22.0, longitude: 89.5, rating: 4.7, reviews: 41000, popularity: 4, vibes: ["nature", "adventure"], nightlyBaseUsd: 70, description: "Mangrove home of the Bengal tiger", summary: "Boat safaris, wildlife spotting, and river camps." },
+  { placeId: "cat_bandarban_bd", name: "Bandarban", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 22.1953, longitude: 92.2183, rating: 4.6, reviews: 28000, popularity: 3, vibes: ["adventure", "nature"], nightlyBaseUsd: 40, description: "Hill tracts and tribal trails", summary: "Nilgiri views, waterfalls, and river boat rides." },
+  { placeId: "cat_rangamati_bd", name: "Rangamati", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 22.7324, longitude: 92.2988, rating: 4.5, reviews: 22000, popularity: 3, vibes: ["nature", "romance"], nightlyBaseUsd: 42, description: "Lake district of the hills", summary: "Kaptai Lake cruises and hanging bridge walks." },
+  { placeId: "cat_kuakata_bd", name: "Kuakata", countryCode: "BD", country: "Bangladesh", region: "South Asia", latitude: 21.8213, longitude: 90.1218, rating: 4.4, reviews: 18000, popularity: 3, vibes: ["beach", "romance"], nightlyBaseUsd: 40, description: "Where you can see sunrise and sunset over the sea", summary: "Quiet beaches and fishing-village evenings." },
+  { placeId: "cat_kolkata_in", name: "Kolkata", countryCode: "IN", country: "India", region: "South Asia", latitude: 22.5726, longitude: 88.3639, rating: 4.5, reviews: 420000, popularity: 4, vibes: ["culture", "food", "city"], nightlyBaseUsd: 55, description: "City of joy on the Hooghly", summary: "Howrah Bridge, tram rides, and legendary sweets." },
   { placeId: "cat_mumbai_in", name: "Mumbai", countryCode: "IN", country: "India", region: "South Asia", latitude: 19.076, longitude: 72.8777, rating: 4.5, reviews: 760000, popularity: 4, vibes: ["city", "food", "culture"], nightlyBaseUsd: 75, description: "Bollywood dreams on the Arabian Sea", summary: "Marine Drive, Colaba cafés, and temple street food." },
   { placeId: "cat_delhi_in", name: "Delhi", countryCode: "IN", country: "India", region: "South Asia", latitude: 28.6139, longitude: 77.209, rating: 4.4, reviews: 980000, popularity: 4, vibes: ["culture", "food", "city"], nightlyBaseUsd: 65, description: "Five millennia in layers", summary: "Old Delhi bazaars, Humayun's Tomb, and modernist cafes." },
   { placeId: "cat_jaipur_in", name: "Jaipur", countryCode: "IN", country: "India", region: "South Asia", latitude: 26.9124, longitude: 75.7873, rating: 4.7, reviews: 410000, popularity: 4, vibes: ["culture", "food", "romance"], nightlyBaseUsd: 60, description: "The Pink City of palaces", summary: "Amber Fort, City Palace, and bangle-shop bazaars." },
@@ -156,27 +166,41 @@ const CATALOG_BY_ID: Record<string, CatalogDestination> = CATALOG.reduce(
 );
 
 /** Find catalog destinations whose name contains the query (case-insensitive). */
+const ADMIN_NOISE = new Set([
+  "division", "district", "province", "region", "state", "city", "metro",
+  "area", "county", "municipality", "the", "of", "and",
+]);
+
 export function searchCatalog(query: string, limit = 25): CatalogDestination[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  const tokens = q.split(/\s+/).filter(Boolean);
+  const tokens = q
+    .split(/[\s,]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 2 && !ADMIN_NOISE.has(t));
+  if (tokens.length === 0) return [];
 
   const scored: { dest: CatalogDestination; score: number }[] = [];
   for (const dest of CATALOG) {
-    const haystack = `${dest.name} ${dest.country} ${dest.region} ${(dest.vibes || []).join(" ")}`.toLowerCase();
+    const name = dest.name.toLowerCase();
+    const country = dest.country.toLowerCase();
+    const region = dest.region.toLowerCase();
+    const haystack = `${name} ${country} ${region} ${(dest.vibes || []).join(" ")}`.toLowerCase();
     let score = 0;
+    let matched = 0;
     for (const t of tokens) {
-      if (!haystack.includes(t)) {
-        score = -1;
-        break;
-      }
-      // Weight exact start-of-name match higher
-      if (dest.name.toLowerCase().startsWith(t)) score += 3;
-      else if (dest.country.toLowerCase().includes(t)) score += 2;
-      else if (dest.region.toLowerCase().includes(t)) score += 1;
+      if (!haystack.includes(t)) continue;
+      matched += 1;
+      if (name === t || name.startsWith(t)) score += 8;
+      else if (name.includes(t)) score += 5;
+      else if (country.includes(t) || country.startsWith(t)) score += 4;
+      else if (region.includes(t)) score += 2;
       else score += 1;
     }
-    if (score > 0) scored.push({ dest, score });
+    // Require at least one token match; prefer more tokens matched
+    if (matched === 0) continue;
+    score += matched * 2;
+    scored.push({ dest, score });
   }
 
   scored.sort((a, b) => b.score - a.score || b.dest.popularity - a.dest.popularity);
@@ -185,13 +209,12 @@ export function searchCatalog(query: string, limit = 25): CatalogDestination[] {
 
 /** Find the closest catalog destinations to a coordinate. */
 export function nearestCatalog(latitude: number, longitude: number, limit = 12): CatalogDestination[] {
-  const ranked = CATALOG.map((dest) => {
-    const dLat = dest.latitude - latitude;
-    const dLng = dest.longitude - longitude;
-    const distanceSq = dLat * dLat + dLng * dLng;
-    return { dest, distanceSq };
-  });
-  ranked.sort((a, b) => a.distanceSq - b.distanceSq);
+  const origin = { latitude, longitude };
+  const ranked = CATALOG.map((dest) => ({
+    dest,
+    km: haversineKm(origin, { latitude: dest.latitude, longitude: dest.longitude }),
+  }));
+  ranked.sort((a, b) => a.km - b.km);
   return ranked.slice(0, limit).map((r) => r.dest);
 }
 

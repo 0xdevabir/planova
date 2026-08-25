@@ -25,7 +25,7 @@ export async function searchDestinations(
   };
 
   const cacheKey = generateCacheKey(
-    "search:v5",
+    "search:v6",
     (Math.round(params.latitude * 100) / 100).toString(),
     (Math.round(params.longitude * 100) / 100).toString(),
     params.budgetMin.toString(),

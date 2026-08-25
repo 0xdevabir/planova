@@ -24,7 +24,7 @@ export async function getNearbyDestinations(
 ): Promise<Destination[]> {
   void radius; // catalog/OSM results are global; radius is conceptual
   const cacheKey = generateCacheKey(
-    "destinations:v4",
+    "destinations:v5",
     (Math.round(latitude * 100) / 100).toString(),
     (Math.round(longitude * 100) / 100).toString(),
     (query || "").toLowerCase(),
