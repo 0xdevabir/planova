@@ -22,7 +22,7 @@ export async function searchDestinations(
   params: SearchParams,
 ): Promise<SearchResponse> {
   const cacheKey = generateCacheKey(
-    "search:v3",
+    "search:v4",
     (Math.round(params.latitude * 100) / 100).toString(),
     (Math.round(params.longitude * 100) / 100).toString(),
     params.budgetMin.toString(),
@@ -106,6 +106,10 @@ export async function searchDestinations(
               : budget.total > params.budgetMax * 0.85
               ? ("Limited" as const)
               : ("Available" as const),
+          weather: budget.weather,
+          safetyRating: budget.safetyRating,
+          hotelEstimate: budget.hotelEstimate,
+          flightEstimate: budget.flightEstimate,
           valueScore: Math.round(finalScore),
           durationDays: Math.max(
             1,
