@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import ToastProvider from "@/components/ToastProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const display = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
+  axes: ["SOFT", "WONK", "opsz"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const sans = Source_Sans_3({
+  variable: "--font-sans-body",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "Planova - Smart Travel Planner",
-  description: "Plan your next adventure with AI-powered destination recommendations and budget-aware travel options",
+  description:
+    "Plan your next adventure with destination recommendations, real places to stay and eat, and budget-aware travel options",
 };
 
 export default function RootLayout({
@@ -25,9 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${display.variable} ${sans.variable} antialiased`}>
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
