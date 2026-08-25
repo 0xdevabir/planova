@@ -75,6 +75,9 @@ function HomeInner() {
         searchParams.set("vibes", formData.vibes.join(","));
       }
 
+      const { storeSearchResults, searchCacheKey } = await import("@/lib/utils/searchCache");
+      storeSearchResults(searchCacheKey(searchParams), results);
+
       router.push(`/recommendations?${searchParams.toString()}`);
     } catch (error) {
       console.error("Search error:", error);

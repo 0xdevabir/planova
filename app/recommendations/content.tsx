@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/useToast";
 import { SearchResponse, DestinationResult } from "@/lib/types";
 import { applyFilters, sortResults, priceBounds } from "@/lib/utils/filters";
 import { formatCurrency } from "@/lib/utils/money";
+import { loadSearchResults, searchCacheKey } from "@/lib/utils/searchCache";
 import { FaArrowLeft, FaSearch } from "react-icons/fa";
 
 const DEFAULT_FILTERS: FilterState = {
@@ -56,6 +57,18 @@ export default function RecommendationsContent() {
           currency: searchParams.get("currency") || "USD",
           vibes: vibesParam ? vibesParam.split(",").filter(Boolean) : [],
         };
+
+        const cached = loadSearchResults(searchCacheKey(searchParams));
+        if (cached && Array.isArray(cached.results) && cached.results.length > 0) {
+          setSearchResults(cached);
+          const bounds = priceBounds(cached.results);
+          setFilters((prev) => ({
+            ...prev,
+            priceMin: bounds.min,
+            priceMax: bounds.max,
+          }));
+          return;
+        }
 
         const response = await fetch("/api/search", {
           method: "POST",
