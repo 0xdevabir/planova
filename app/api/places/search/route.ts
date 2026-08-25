@@ -284,12 +284,13 @@ export async function GET(request: NextRequest) {
     .map((p) => scorePlace(p, origin, originCountry))
     .sort((a, b) => a.tier - b.tier || b.score - a.score || a.km - b.km);
 
-  const localQuota = Math.min(limit, Math.max(6, Math.ceil(limit * 0.65)));
+  const localQuota = Math.min(limit, Math.max(7, Math.ceil(limit * 0.75)));
   const regionalQuota = Math.min(
     Math.max(0, limit - localQuota),
     Math.max(2, Math.ceil(limit * 0.2)),
   );
-  const wideQuota = Math.max(0, limit - localQuota - regionalQuota);
+  // At most one long-haul teaser when local coverage is strong
+  const wideQuota = Math.min(1, Math.max(0, limit - localQuota - regionalQuota));
 
   const picked: RawPlace[] = [];
   const pushFromTier = (tiers: number[], max: number) => {
